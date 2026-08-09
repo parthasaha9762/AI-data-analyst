@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.title("AI Data Analyst")
+st.title("AI Data Analyst tasker")
 
 
 #Upload your multiple CSV files
@@ -48,9 +48,13 @@ if uploaded_files:
             if num_duplicates > 0:
                 st.write(f"❌ Found **{num_duplicates}** duplicate records!")
                 st.dataframe(df[df.duplicated()])
+                df.drop_duplicates()
+                
             else:
                 st.write("No duplicate records found! 🎉")
 
+        with st.expander("Show statistics"):
+            st.write(df.describe())
 
         #Show no of rows and columns of each CSV files
         st.write(f"No: of rows: {len(df)}  \nNo: of columns: {len(df.columns)}")
