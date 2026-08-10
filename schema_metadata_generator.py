@@ -40,4 +40,13 @@ def generate_table_schema(df: pd.DataFrame, table_name: str) -> dict:
 
         columns_metadata.append(col_info)
 
+    schema_meta_dictionary = {
+        "table name": table_name,
+        "row count": row_count,
+        "column count": columns_count,
+        "columns": columns_metadata
+    }
+
+    return schema_meta_dictionary
+
     
