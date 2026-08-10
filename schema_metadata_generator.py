@@ -50,3 +50,13 @@ def generate_table_schema(df: pd.DataFrame, table_name: str) -> dict:
     return schema_meta_dictionary
 
     
+def schema_to_Json(schema_data: dict | list, indent: int = 4) -> str:
+    """Converts a schema dictionary (or list of dictionaries) into a JSON string.
+    Parameters:
+        schema_data (dict or list): Schema metadata dictionary or list of dicts.
+        indent (int): Number of spaces for JSON indentation.
+    Returns:
+        str: Formatted JSON string.
+    """
+
+    return json.dumps(schema_data, indent=indent)
