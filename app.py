@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.title("AI Data Analyst tasker")
+st.title("AI Data Analyst")
 
 
 #Upload your multiple CSV files
@@ -64,7 +64,7 @@ if uploaded_files:
         #     st.write(", ".join(df.columns))
 
         #Show first 10 rows of each CSV file
-        with st.expander("Show table"):
+        with st.expander("Show sample rows of the table"):
             sample_dataframe = df.head(10).copy()
             sample_dataframe.index = range(1, len(sample_dataframe) + 1)
             st.dataframe(sample_dataframe)
