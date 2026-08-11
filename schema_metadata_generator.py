@@ -18,11 +18,11 @@ def generate_table_schema(df: pd.DataFrame, table_name: str) -> dict:
     columns_metadata = []
 
     for col in df.columns:
-        null_count = int(df.isnull().sum())
-        null_percentage = float(round((null_count/row_count) * 100), 2) if row_count > 0 else 0.0
+        null_count = int(df[col].isnull().sum())
+        null_percentage = float(round((null_count / row_count) * 100, 2)) if row_count > 0 else 0.0
 
         unique_count = int(df[col].nunique())
-        unique_percentage = float(round((unique_count/ row_count) * 100), 2) if row_count > 0 else 0.0
+        unique_percentage = float(round((unique_count / row_count) * 100, 2)) if row_count > 0 else 0.0
 
         #Candidate_primary_key rule: the column must have no null values and every row count must be equals to unique count
         candidate_primary_key = bool(null_count == 0 and unique_count == row_count)
@@ -49,7 +49,7 @@ def generate_table_schema(df: pd.DataFrame, table_name: str) -> dict:
 
     return schema_meta_dictionary
 
-    
+
 def schema_to_Json(schema_data: dict | list, indent: int = 4) -> str:
     """Converts a schema dictionary (or list of dictionaries) into a JSON string.
     Parameters:
@@ -60,3 +60,55 @@ def schema_to_Json(schema_data: dict | list, indent: int = 4) -> str:
     """
 
     return json.dumps(schema_data, indent=indent)
+
+
+def generate_multiple_schemas(datasets: dict) -> list[dict]:
+    """Generates schema metadata dictionaries for a collection of uploaded tables.
+    Parameters:
+        datasets (dict): Dictionary mapping table_name -> pd.DataFrame
+    Returns:
+        list[dict]: List of schema metadata dictionaries for all tables.
+    """
+    schemas = []
+    for table_name, df in datasets.items(): # 👈 Expects a DICTIONARY of DataFrames
+        schemas.append(generate_table_schema(df, table_name))
+
+    return schemas
+
+
+# Creating multiple dummy DataFrames to test multi-table schema generation
+users_data = {
+    "user_id": [1, 2, 3, 4],
+    "name": ["Alice", "Bob", "Charlie", "David"],
+    "email": ["alice@test.com", "bob@test.com", None, "david@test.com"],
+}
+
+orders_data = {
+    "order_id": [101, 102, 103, 104, 105],
+    "user_id": [1, 2, 1, 3, 2],
+    "total_amount": [250.5, 99.0, 150.0, 450.0, 120.0],
+    "status": ["completed", "pending", "completed", "completed", "cancelled"],
+}
+
+products_data = {
+    "product_id": [501, 502, 503],
+    "product_name": ["Laptop", "Phone", "Headphones"],
+    "price": [1200.0, 800.0, 150.0],
+}
+
+# Combine multiple datasets into a dictionary (simulating uploaded CSV files in Streamlit)
+dummy_datasets = {
+    "users": pd.DataFrame(users_data),
+    "orders": pd.DataFrame(orders_data),
+    "products": pd.DataFrame(products_data),
+}
+
+# Generate schema metadata for multiple tables
+multiple_schemas = generate_multiple_schemas(dummy_datasets)
+
+# Convert all schema metadata to JSON format
+multiple_schemas_json = schema_to_Json(multiple_schemas)
+
+# Print the final JSON output
+print("=== MULTIPLE TABLES SCHEMA METADATA (JSON) ===")
+print(multiple_schemas_json)

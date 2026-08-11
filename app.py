@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 
+from schema_metadata_generator import generate_table_schema, schema_to_Json, generate_multiple_schemas
+
 st.title("AI Data Analyst")
 
 
@@ -37,6 +39,13 @@ if uploaded_files:
         df.dropna()
         df.fillna(0)
 
+        # Here we will generate the schema metadata for the uploaded CSV files
+        schema_table_dictionary = generate_multiple_schemas(st.session_state["datasets"])
+
+        # Converting the schema metadata to JSON format
+        schema_JSON = schema_to_Json(schema_table_dictionary, 4)
+
+        
         with st.expander("Show missing values"):           
             #It will show no missing values if the sum of missing values is 0
             st.write(missing_values if missing_values.sum() > 0
@@ -82,11 +91,13 @@ if uploaded_files:
                 )
                 st.write(clean_dtypes)
 
+    # Display all the schemas at once
+    with st.expander("Show all the metadata schemas in JSON format"):
+        st.json(schema_JSON)           
+
             
 
 
-
-    
 
 # Form allowing submission via Analyze button or pressing Enter
 with st.form("query_form"):
