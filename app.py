@@ -91,7 +91,7 @@ if uploaded_files:
                 )
                 st.write(clean_dtypes)
 
-    # Display all the schemas at once
+    # Display all the schemas at once in the page
     with st.expander("Show all the metadata schemas in JSON format"):
         st.json(schema_JSON)           
 
