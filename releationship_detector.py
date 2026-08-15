@@ -30,7 +30,34 @@ def check_datatype_compatibility(source_dtype, target_dtype) -> bool:
     is_source_text = any(text_type in source_dtype_str for text_type in ["object", "string", "category"])
     is_target_text = any(text_type in target_dtype_str for text_type in ["object", "string", "category"])
 
-    if is_source_text and target_dtype_str:
+    if is_source_text and is_target_text:
         return True
 
     return False
+
+
+
+def check_column_value_overlap(source_column: pd.Series, target_column: pd.Series)-> float:
+    """
+    pd.Series -> It's a 1D column of a dataframe,i.e, it will represent a specific column of a Pandas dataframe in a series form.
+
+    Calculates what fraction of unique non-null values in the source column exist in the target column.
+    Returns:
+        float: Overlap ratio between 0.0 (0% overlap) and 1.0 (100% overlap).
+    """
+
+    # Extract non null values from both the columns for Set operations
+    unique_source_values = set(source_column.dropna().unique())
+    unique_target_values = set(target_column.dropna().unique())
+
+
+    # If no unique values exists in the source column, return 0.0 just to prevent ZeroDivisionError
+    if not unique_source_values:
+        return 0.0
+
+    # Calculate how many source values are present in the target values
+    shared_values = unique_source_values.intersection(unique_target_values)
+    overlap_ratio = len(shared_values) / len(unique_source_values)
+
+    return overlap_ratio
+    
