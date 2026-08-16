@@ -75,6 +75,8 @@ minimum_confidence_score: int = 60) -> list[dict]:
     detected_relationships = []
     table_names_list = list(datasets.keys()) # e.g. ["customers", "orders", "products"]
 
+    confidence_level = "LOW"
+
     # Iterate through table pairs
 
     for source_index in range(len(table_names_list)):
@@ -131,23 +133,23 @@ minimum_confidence_score: int = 60) -> list[dict]:
                     if score >= minimum_confidence_score:
                         confidence_level = "HIGH" if score >= 80 else "MEDIUM"
             
-                    relationship_summary = {
-                        "source_table": source_table_name,
-                        "source column": str(source_column_name),
-                        "target_table": target_table_name,
-                        "target_column": str(target_column_name),
-                        "relationship_type": "Foreign Key -> Primary Key",
-                        "confidence_score": score,
-                        "confidence_level": confidence_level,
-                        "scoring_breakdown": {
-                            "same_column_name": is_same_column_name,
-                            "compatible_datatype": is_datatype_compatible,
-                            "target_is_unique": is_target_column_unique,
-                            "value_overlap_percentage": round(value_overlap_ratio*100, 2)
+                        relationship_summary = {
+                            "source_table": source_table_name,
+                            "source_column": str(source_column_name),
+                            "target_table": target_table_name,
+                            "target_column": str(target_column_name),
+                            "relationship_type": "Foreign Key -> Primary Key",
+                            "confidence_score": score,
+                            "confidence_level": confidence_level,
+                            "scoring_breakdown": {
+                                "same_column_name": is_same_column_name,
+                                "compatible_datatype": is_datatype_compatible,
+                                "target_is_unique": is_target_column_unique,
+                                "value_overlap_percentage": round(value_overlap_ratio*100, 2)
+                            }
                         }
-                    }
 
-                    detected_relationships.append(relationship_summary)
+                        detected_relationships.append(relationship_summary)
     
     # Sort relationships by highest confidence score first
     detected_relationships.sort(key=lambda item: item["confidence_score"], reverse=True)
@@ -155,4 +157,33 @@ minimum_confidence_score: int = 60) -> list[dict]:
     return detected_relationships
             
             
+# Built-in standalone test script to run from terminal
+customers_sample_data = {
+        "customer_id": [1, 2, 3, 4],
+        "customer_name": ["Alice", "Bob", "Charlie", "David"],
+        "city": ["New York", "London", "Tokyo", "Paris"]
+    }
+orders_sample_data = {
+    "order_id": [101, 102, 103, 104, 105],
+    "customer_id": [1, 2, 1, 3, 2],
+    "product_id": [501, 502, 501, 503, 502],
+    "total_amount": [250.5, 99.0, 150.0, 450.0, 120.0]
+}
+products_sample_data = {
+    "product_id": [501, 502, 503],
+    "product_name": ["Laptop", "Phone", "Headphones"],
+    "category": ["Electronics", "Electronics", "Accessories"]
+}
+sample_datasets = {
+    "customers": pd.DataFrame(customers_sample_data),
+    "orders": pd.DataFrame(orders_sample_data),
+    "products": pd.DataFrame(products_sample_data)
+}
+print("=== DETECTED TABLE RELATIONSHIPS ===")
+results = detect_table_releationship(sample_datasets)
+for rank, rel in enumerate(results, start=1):
+    print(f"\n{rank}. {rel['source_table']}.{rel['source_column']} -> {rel['target_table']}.{rel['target_column']}")
+    print(f"   Relationship : {rel['relationship_type']}")
+    print(f"   Confidence   : {rel['confidence_level']} (Score: {rel['confidence_score']}/100)")
+    print(f"   Breakdown    : {rel['scoring_breakdown']}")
     
