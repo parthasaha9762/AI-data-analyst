@@ -61,3 +61,98 @@ def check_column_value_overlap(source_column: pd.Series, target_column: pd.Serie
 
     return overlap_ratio
     
+
+def detect_table_releationship(datasets: dict[str, pd.DataFrame],
+minimum_confidence_score: int = 60) -> list[dict]:
+    """
+    Scans all dataset pairs to detect potential Foreign Key -> Primary Key relationships.
+    Parameters:
+        datasets (dict): Dictionary mapping table names to pandas DataFrames.
+        minimum_confidence_score (int): Minimum score required to include a relationship.
+    Returns:
+        list[dict]: Sorted list of detected relationship dictionaries.
+    """
+    detected_relationships = []
+    table_names_list = list(datasets.keys()) # e.g. ["customers", "orders", "products"]
+
+    # Iterate through table pairs
+
+    for source_index in range(len(table_names_list)):
+        for target_index in range(len(table_names_list)):
+
+            # Don't compare a table to itself!
+            if source_index == target_index:
+                continue
+
+            source_table_name = table_names_list[source_index]
+            target_table_name = table_names_list[target_index]
+
+            source_dataframe = datasets[source_table_name]
+            target_dataframe = datasets[target_table_name]
+
+            # Inner loop: compare every column of source dataset with target dataset
+            for source_column_name in source_dataframe.columns:
+                for target_column_name in target_dataframe.columns:
+
+                    score = 0
+
+                    # Rule 1: Same Column Name (+40 Points)
+                    is_same_column_name = (str(source_column_name).strip().lower() == str(target_column_name).strip().lower())
+
+                    if is_same_column_name:
+                        score += 40
+
+
+                    # Rule 2: Compatible Data Types (+20 Points)
+                    is_datatype_compatible = check_datatype_compatibility(source_dataframe[source_column_name].dtype,
+                    target_dataframe[target_column_name].dtype)
+
+                    if is_datatype_compatible:
+                        score += 20
+
+                    # Rule 3: Target Column is Unique / Candidate Primary Key (+20 Points)
+                    target_non_null_series = target_dataframe[target_column_name].dropna()
+
+                    is_target_column_unique = (
+                        len(target_non_null_series) > 0 and
+                        target_non_null_series.nunique() == len(target_non_null_series)
+                    )
+
+                    if is_target_column_unique:
+                        score += 20
+
+                    # Rule 4: High Value Overlap (+20 Points)
+                    value_overlap_ratio = check_column_value_overlap(source_dataframe[source_column_name], target_dataframe[target_column_name])
+
+                    if value_overlap_ratio >= 0.8:
+                        score += 20
+
+                    # Filter by minimum confidence score threshold (default: 60)
+                    if score >= minimum_confidence_score:
+                        confidence_level = "HIGH" if score >= 80 else "MEDIUM"
+            
+                    relationship_summary = {
+                        "source_table": source_table_name,
+                        "source column": str(source_column_name),
+                        "target_table": target_table_name,
+                        "target_column": str(target_column_name),
+                        "relationship_type": "Foreign Key -> Primary Key",
+                        "confidence_score": score,
+                        "confidence_level": confidence_level,
+                        "scoring_breakdown": {
+                            "same_column_name": is_same_column_name,
+                            "compatible_datatype": is_datatype_compatible,
+                            "target_is_unique": is_target_column_unique,
+                            "value_overlap_percentage": round(value_overlap_ratio*100, 2)
+                        }
+                    }
+
+                    detected_relationships.append(relationship_summary)
+    
+    # Sort relationships by highest confidence score first
+    detected_relationships.sort(key=lambda item: item["confidence_score"], reverse=True)
+
+    return detected_relationships
+            
+            
+    
