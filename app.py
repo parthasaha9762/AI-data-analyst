@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 
 # Import custom helper functions for schema metadata generation and relationship detection
-from schema_metadata_generator import generate_table_schema, schema_to_Json, generate_multiple_schemas
-from releationship_detector import detect_table_releationship
+from modules.schema_metadata_generator import generate_table_schema, schema_to_Json, generate_multiple_schemas
+from modules.releationship_detector import detect_table_releationship
 
 # Set main application title
 st.title("AI Data Analyst")
