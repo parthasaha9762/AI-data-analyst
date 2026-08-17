@@ -3,6 +3,8 @@ import pandas as pd
 
 from schema_metadata_generator import generate_table_schema, schema_to_Json, generate_multiple_schemas
 
+from releationship_detector import detect_table_releationship
+
 st.title("AI Data Analyst")
 
 
@@ -36,15 +38,6 @@ if uploaded_files:
         # Here comes the Datapreprocessing / Data Cleaning part
         # Calculate and display missing value summary
         missing_values = df.isnull().sum()
-        df.dropna()
-        df.fillna(0)
-
-        # Here we will generate the schema metadata for the uploaded CSV files
-        schema_table_dictionary = generate_multiple_schemas(st.session_state["datasets"])
-
-        # Converting the schema metadata to JSON format
-        schema_JSON = schema_to_Json(schema_table_dictionary, 4)
-
         
         with st.expander("Show missing values"):           
             #It will show no missing values if the sum of missing values is 0
@@ -57,7 +50,11 @@ if uploaded_files:
             if num_duplicates > 0:
                 st.write(f"❌ Found **{num_duplicates}** duplicate records!")
                 st.dataframe(df[df.duplicated()])
-                df.drop_duplicates()
+
+                 # 1. Reassign df to save the cleaned copy without duplicates
+                df = df.drop_duplicates()
+                st.session_state["datasets"][table_name] = df 
+                st.success("Duplicate records have been cleared!")
                 
             else:
                 st.write("No duplicate records found! 🎉")
@@ -67,10 +64,6 @@ if uploaded_files:
 
         #Show no of rows and columns of each CSV files
         st.write(f"No: of rows: {len(df)}  \nNo: of columns: {len(df.columns)}")
-
-        # #Show columns of each CSV file
-        # with st.expander("Show columns"):
-        #     st.write(", ".join(df.columns))
 
         #Show first 10 rows of each CSV file
         with st.expander("Show sample rows of the table"):
@@ -92,8 +85,37 @@ if uploaded_files:
                 st.write(clean_dtypes)
 
     # Display all the schemas at once in the page
+    # Here we will generate the schema metadata for the uploaded CSV files
+    schema_table_dictionary = generate_multiple_schemas(st.session_state["datasets"])
+    
+    # Converting the schema metadata to JSON format
+    schema_JSON = schema_to_Json(schema_table_dictionary,4)
     with st.expander("Show all the metadata schemas in JSON format"):
-        st.json(schema_JSON)           
+        st.json(schema_JSON)   
+
+
+    # Display the table relationships
+    table_relationships = detect_table_releationship(st.session_state["datasets"])        
+
+    with st.expander("Show detected table relationships"):
+        if table_relationships:
+            # Convert list of relationship dicts into a clean DataFrame for structured tabular display
+            display_data = []
+            for relation in table_relationships:
+                badge = "🟢 HIGH" if relation["confidence_level"] == "HIGH" else "🟡 MEDIUM"
+                display_data.append({
+                    "Confidence": badge,
+                    "Score": f"{relation['confidence_score']}%",
+                    "Source (Foreign Key)": f"{relation['source_table']}.{relation['source_column']}",
+                    "Target (Primary Key)": f"{relation['target_table']}.{relation['target_column']}",
+                    "Relationship Type": relation["relationship_type"],
+                    "Value Overlap": f"{relation['scoring_breakdown']['value_overlap_percentage']}%"
+                })
+            
+            rel_df = pd.DataFrame(display_data)
+            st.dataframe(rel_df, use_container_width=True, hide_index=True)
+        else:
+            st.write("No table relationships detected ❌")
 
             
 
