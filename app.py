@@ -5,6 +5,9 @@ import pandas as pd
 from modules.schema_metadata_generator import generate_table_schema, schema_to_Json, generate_multiple_schemas
 from modules.releationship_detector import detect_table_releationship
 
+# Import database manager from module
+from modules.database_manager import DatabaseManager
+
 # Set main application title
 st.title("AI Data Analyst")
 
@@ -23,6 +26,10 @@ uploaded_files = st.file_uploader(
 # Key = table_name (e.g. "orders"), Value = Pandas DataFrame
 if "datasets" not in st.session_state:
     st.session_state["datasets"] = {}
+
+# Initialize DatabaseManager in session state if not present
+if "db_manager" not in st.session_state:
+    st.session_state["db_manager"] = DatabaseManager()
 
 
 # ------------------------------------------------------------------------------
@@ -69,6 +76,7 @@ if uploaded_files:
             else:
                 st.write("No duplicate records found! 🎉")
 
+
         # 3. Descriptive Summary Statistics (Mean, Min, Max, Quantiles for numeric columns)
         with st.expander("Show statistics"):
             st.write(df.describe())
@@ -95,6 +103,45 @@ if uploaded_files:
                     index=df.columns
                 )
                 st.write(clean_dtypes)
+
+
+    # Load all uploaded and cleaned datasets into SQLite database tables
+    st.session_state["db_manager"].load_datasets(st.session_state["datasets"])
+
+
+    # --------------------------------------------------------------------------
+    # STEP 3.5: MANUAL SQL TESTING
+    # --------------------------------------------------------------------------
+
+    # Manual SQL Testing Section
+
+    with st.expander("Try SQL queries(Beta)"):
+        # Display loaded tables for verification
+        loaded_tables = st.session_state["db_manager"].get_tables()
+        st.write(f"***Loaded Database tables:*** `{loaded_tables}`")
+
+        # SQL query input area
+        user_sql = st.text_area(
+            "Enter your SQL query",
+            placeholder= "SELECT * FROM table_name LIMIT 10;"
+        )
+
+        if st.button("Run SQL"):
+            if user_sql.strip():
+                try:
+                    # Execute query via DatabaseManager
+                    result_df = st.session_state["db_manager"].execute_query(user_sql)
+                    if ";" in user_sql:
+                        st.success("Query executed successfully!", icon="✅")
+                        st.dataframe(result_df)
+                    else:
+                        st.warning("Please add semicolon at the end of the query")
+
+                except Exception as e:
+                    st.error(f"Query execution failed with message: {e}")
+            
+            else:
+                st.warning("Please enter valid SQL query")
 
 
     # --------------------------------------------------------------------------
@@ -138,6 +185,10 @@ if uploaded_files:
             st.dataframe(rel_df, use_container_width=True, hide_index=True)
         else:
             st.write("No table relationships detected ❌")
+
+
+
+    
 
 
 # ------------------------------------------------------------------------------
