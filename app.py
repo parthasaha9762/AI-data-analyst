@@ -132,8 +132,9 @@ if uploaded_files:
                     # Execute query via DatabaseManager
                     result_df = st.session_state["db_manager"].execute_query(user_sql)
                     if ";" in user_sql:
-                        st.success("Query executed successfully!", icon="✅")
                         st.dataframe(result_df)
+                        st.success("Query executed successfully!", icon="✅")
+                        
                     else:
                         st.warning("Please add semicolon at the end of the query")
 

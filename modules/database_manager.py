@@ -31,8 +31,26 @@ class DatabaseManager:
         """
         Executes a SQL query and returns the results directly as a Pandas DataFrame.
         """
+        # Automatically rename duplicate columns if present (e.g. JOIN SELECT *)
 
-        return pd.read_sql_query(query, self.conn)
+        df = pd.read_sql_query(query, self.conn)
+
+        if len(df.columns) != len(set(df.columns)):
+            new_columns = []
+            counts = {}
+            
+            for col in df.columns:
+                if col in counts:
+                    counts[col] += 1
+                    new_columns.append(f"{col}_{counts[col]}")
+                else:
+                    counts[col] = 0
+                    new_columns.append(col)
+
+            df.columns = new_columns
+
+        return df
+        
 
     def get_tables(self)-> list:
         """
