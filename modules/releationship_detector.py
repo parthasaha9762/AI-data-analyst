@@ -158,32 +158,34 @@ minimum_confidence_score: int = 60) -> list[dict]:
             
             
 # Built-in standalone test script to run from terminal
-customers_sample_data = {
+if __name__ == "__main__":
+    customers_sample_data = {
         "customer_id": [1, 2, 3, 4],
         "customer_name": ["Alice", "Bob", "Charlie", "David"],
         "city": ["New York", "London", "Tokyo", "Paris"]
     }
-orders_sample_data = {
-    "order_id": [101, 102, 103, 104, 105],
-    "customer_id": [1, 2, 1, 3, 2],
-    "product_id": [501, 502, 501, 503, 502],
-    "total_amount": [250.5, 99.0, 150.0, 450.0, 120.0]
-}
-products_sample_data = {
-    "product_id": [501, 502, 503],
-    "product_name": ["Laptop", "Phone", "Headphones"],
-    "category": ["Electronics", "Electronics", "Accessories"]
-}
-sample_datasets = {
-    "customers": pd.DataFrame(customers_sample_data),
-    "orders": pd.DataFrame(orders_sample_data),
-    "products": pd.DataFrame(products_sample_data)
-}
-print("=== DETECTED TABLE RELATIONSHIPS ===")
-results = detect_table_releationship(sample_datasets)
-for rank, rel in enumerate(results, start=1):
-    print(f"\n{rank}. {rel['source_table']}.{rel['source_column']} -> {rel['target_table']}.{rel['target_column']}")
-    print(f"   Relationship : {rel['relationship_type']}")
-    print(f"   Confidence   : {rel['confidence_level']} (Score: {rel['confidence_score']}/100)")
-    print(f"   Breakdown    : {rel['scoring_breakdown']}")
+    orders_sample_data = {
+        "order_id": [101, 102, 103, 104, 105],
+        "customer_id": [1, 2, 1, 3, 2],
+        "product_id": [501, 502, 501, 503, 502],
+        "total_amount": [250.5, 99.0, 150.0, 450.0, 120.0]
+    }
+    products_sample_data = {
+        "product_id": [501, 502, 503],
+        "product_name": ["Laptop", "Phone", "Headphones"],
+        "category": ["Electronics", "Electronics", "Accessories"]
+    }
+    sample_datasets = {
+        "customers": pd.DataFrame(customers_sample_data),
+        "orders": pd.DataFrame(orders_sample_data),
+        "products": pd.DataFrame(products_sample_data)
+    }
+    print("=== DETECTED TABLE RELATIONSHIPS ===")
+    results = detect_table_releationship(sample_datasets)
+    for rank, rel in enumerate(results, start=1):
+        print(f"\n{rank}. {rel['source_table']}.{rel['source_column']} -> {rel['target_table']}.{rel['target_column']}")
+        print(f"   Relationship : {rel['relationship_type']}")
+        print(f"   Confidence   : {rel['confidence_level']} (Score: {rel['confidence_score']}/100)")
+        print(f"   Breakdown    : {rel['scoring_breakdown']}")
+
     

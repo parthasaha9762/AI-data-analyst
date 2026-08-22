@@ -8,6 +8,9 @@ from modules.releationship_detector import detect_table_releationship
 # Import database manager from module
 from modules.database_manager import DatabaseManager
 
+# Import schema context generator from module
+from modules.schema_context import generate_schema_context
+
 # Set main application title
 st.title("AI Data Analyst")
 
@@ -103,6 +106,18 @@ if uploaded_files:
                     index=df.columns
                 )
                 st.write(clean_dtypes)
+
+    # --------------------------------------------------------------------------
+    # STEP 2.5: AI-Readable Database Schema Context Generation
+    # --------------------------------------------------------------------------
+
+    # Generate a clean, structured text representation of all tables, columns,
+    # and detected relationships formatted specifically for LLM prompt context
+    schema_context = generate_schema_context(st.session_state["datasets"])
+
+    # Display the formatted schema description in a copyable monospaced code block
+    with st.expander("Show AI-Readable Schema Context (for LLM)"):
+        st.code(schema_context, language="text")
 
 
     # Load all uploaded and cleaned datasets into SQLite database tables
