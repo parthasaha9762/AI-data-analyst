@@ -109,8 +109,6 @@ def generate_schema_context(
             
 
 if __name__ == "__main__":
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")
 
     # 1. Single Table Test
     single_table_test = {
