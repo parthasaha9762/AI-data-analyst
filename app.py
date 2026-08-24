@@ -14,6 +14,9 @@ from modules.schema_context import generate_schema_context
 # Import SQL generator from module
 from modules.sql_generator import generate_SQL_query
 
+# Import SQL explainer from sql_explainer module
+from modules.sql_explainer import explain_SQL_query
+
 # Set main application title
 st.title("AI Data Analyst")
 
@@ -245,22 +248,31 @@ if analyze_submitted:
         # 1. Fetch current schema context
         schema_context = generate_schema_context(st.session_state["datasets"])
 
-        with st.spinner("🤖 AI is generating SQL query..."):
-            try:
-                # 2. Call LLM to generate SQL query
+        try:
+            # 2. Call LLM to generate SQL query (Spinner #1 stops as soon as SQL is ready)
+            with st.spinner("🤖 AI is generating SQL query..."):
                 generated_sql = generate_SQL_query(schema_context, question)
 
-                st.subheader("Generated SQL Query")
-                st.code(generated_sql, language="sql")
+            # Display SQL Query immediately!
+            st.subheader("Generated SQL Query")
+            st.code(generated_sql, language="sql")
 
-                # 3. Execute generated SQL on SQLite Database Manager
-                result_df = st.session_state["db_manager"].execute_query(generated_sql)
+            # 2.5 Generate Explanation (Spinner #2 starts only for explanation)
+            with st.spinner("💡 AI is generating explanation..."):
+                sql_explanation = explain_SQL_query(schema_context, question, generated_sql)
 
-                st.subheader("Query Results")
-                st.dataframe(result_df, use_container_width=True, hide_index=True)
-                st.success("Query executed successfully! 🎉")
+            # Display Explanation immediately!
+            st.subheader("Explanation behind this query")
+            st.markdown(sql_explanation)
 
-            except Exception as e:
-                st.error(f"❌ Failed to generate or run query: {e}")
+            # 3. Execute generated SQL on SQLite Database Manager
+            result_df = st.session_state["db_manager"].execute_query(generated_sql)
+
+            st.subheader("Query Results")
+            st.dataframe(result_df, use_container_width=True, hide_index=True)
+            st.success("Query executed successfully! 🎉")
+
+        except Exception as e:
+            st.error(f"❌ Failed to generate or run query: {e}")
     else:
         st.warning("Please enter a question before analyzing.")

@@ -9,7 +9,7 @@ warnings.filterwarnings("ignore")
 
 
 
-def generate_SQL_query(schema_context: str, user_question: str):
+def generate_SQL_query(schema_context: str, user_question: str)-> str:
     # Fetch Gemini API key and create a client
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
