@@ -65,11 +65,24 @@ if uploaded_files:
 
         # --- Data Quality Checks & Summary ---
         
-        # 1. Missing Values Check
+        # 1. Missing Values Check & Auto-Cleaning
         missing_values = df.isnull().sum()
         with st.expander("Show missing values"):           
-            # Display missing value counts per column or a success message if clean
-            st.write(missing_values if missing_values.sum() > 0 else "No missing values found! 🎉")
+            if missing_values.sum() > 0:
+                st.write(missing_values[missing_values > 0])
+
+                # Impute missing numeric values with 0, text values with "N/A"
+                for col in df.columns:
+                    if "int" in str(df[col].dtype).lower() or "float" in str(df[col].dtype).lower():
+                        df[col] = df[col].fillna(0)
+                    else:
+                        df[col] = df[col].fillna("N/A")
+
+                # Update session state storage with cleaned DataFrame
+                st.session_state["datasets"][table_name] = df
+                st.success("Missing values have been auto-cleaned! (Numeric ➔ 0, Text ➔ 'N/A') 🎉")
+            else:
+                st.write("No missing values found! 🎉")
 
         # 2. Duplicate Records Check & Auto-Cleaning
         num_duplicates = df.duplicated().sum()
@@ -79,7 +92,9 @@ if uploaded_files:
                 st.dataframe(df[df.duplicated()])
 
                 # Reassign df without duplicates and update session state storage
-                df = df.drop_duplicates()
+
+                # Drops ONLY rows where ID, Name, Email, City, AND Date are ALL 100% identical (based on previous upload)
+                df = df.drop_duplicates().reset_index(drop=True)
                 st.session_state["datasets"][table_name] = df 
                 st.success("Duplicate records have been cleared!")
             else:
@@ -257,7 +272,14 @@ if analyze_submitted:
             st.subheader("Generated SQL Query")
             st.code(generated_sql, language="sql")
 
-            # 2.5 Generate Explanation (Spinner #2 starts only for explanation)
+            # 3. Execute generated SQL on SQLite Database Manager
+            result_df = st.session_state["db_manager"].execute_query(generated_sql)
+
+            st.subheader("Query Results")
+            st.dataframe(result_df, use_container_width=True, hide_index=True)
+            st.success("Query executed successfully! 🎉")
+
+            # 3.5 Generate Explanation (Spinner #2 starts only for explanation)
             with st.spinner("💡 AI is generating explanation..."):
                 sql_explanation = explain_SQL_query(schema_context, question, generated_sql)
 
@@ -265,12 +287,7 @@ if analyze_submitted:
             st.subheader("Explanation behind this query")
             st.markdown(sql_explanation)
 
-            # 3. Execute generated SQL on SQLite Database Manager
-            result_df = st.session_state["db_manager"].execute_query(generated_sql)
-
-            st.subheader("Query Results")
-            st.dataframe(result_df, use_container_width=True, hide_index=True)
-            st.success("Query executed successfully! 🎉")
+            
 
         except Exception as e:
             st.error(f"❌ Failed to generate or run query: {e}")

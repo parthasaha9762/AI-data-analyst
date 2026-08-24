@@ -34,7 +34,7 @@ def explain_SQL_query(schema_context: str, user_question: str, generated_sql: st
     GENERATED SQL QUERY:
     {generated_sql}
 
-    Explain the SQL query in simple, plain English, suitable for business users.
+    Explain the SQL query in simple, plain English, suitable for business users as well as for normal people so that they also can understand it easily.
     Explain:
     - Which tables were used
     - Which columns were selected
@@ -48,7 +48,7 @@ def explain_SQL_query(schema_context: str, user_question: str, generated_sql: st
 
     # Set system instruction
     system_instruction_prompt = (
-        "You are a friendly Data Analytics Instructor.\n"
+        "You are an advanced Data Analytics Instructor.\n"
         "Your task is to explain WHY and HOW a specific SQL query answers the user's question.\n\n"
         "GUIDELINES:\n"
         "1. Explain in simple, clear, and non-technical language.\n"
