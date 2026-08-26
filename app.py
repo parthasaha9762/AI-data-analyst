@@ -145,40 +145,6 @@ if uploaded_files:
     st.session_state["db_manager"].load_datasets(st.session_state["datasets"])
 
 
-    # --------------------------------------------------------------------------
-    # STEP 3.5: MANUAL SQL TESTING
-    # --------------------------------------------------------------------------
-
-    # Manual SQL Testing Section
-
-    with st.expander("Try SQL queries(Beta)"):
-        # Display loaded tables for verification
-        loaded_tables = st.session_state["db_manager"].get_tables()
-        st.write(f"***Loaded Database tables:*** `{loaded_tables}`")
-
-        # SQL query input area
-        user_sql = st.text_area(
-            "Enter your SQL query",
-            placeholder= "SELECT * FROM table_name LIMIT 10;"
-        )
-
-        if st.button("Run SQL"):
-            if user_sql.strip():
-                try:
-                    # Execute query via DatabaseManager
-                    result_df = st.session_state["db_manager"].execute_query(user_sql)
-                    if ";" in user_sql:
-                        st.dataframe(result_df)
-                        st.success("Query executed successfully!", icon="✅")
-                        
-                    else:
-                        st.warning("Please add semicolon at the end of the query")
-
-                except Exception as e:
-                    st.error(f"Query execution failed with message: {e}")
-            
-            else:
-                st.warning("Please enter valid SQL query")
 
 
     # --------------------------------------------------------------------------
@@ -188,44 +154,32 @@ if uploaded_files:
     # Generate schema metadata (data types, null counts, PK candidates) for all uploaded tables
     schema_table_dictionary = generate_multiple_schemas(st.session_state["datasets"])
     
-    # Convert schema dictionary to a formatted JSON string for display
-    schema_JSON = schema_to_Json(schema_table_dictionary, 4)
-    with st.expander("Show all the metadata schemas in JSON format"):
-        st.json(schema_JSON)   
-
-
+    # Commented out from UI display, but runs in backend
+    # with st.expander("Show all the metadata schemas in JSON format"):
+    #     st.json(schema_JSON)   
     # --------------------------------------------------------------------------
-    # STEP 4: Table Relationship Detection (Foreign Key -> Primary Key)
+    # STEP 4: Table Relationship Detection (Foreign Key -> Primary Key) [UI Hidden]
     # --------------------------------------------------------------------------
-
-    # Scan all pairs of uploaded tables to detect potential Foreign Key -> Primary Key relationships
-    table_relationships = detect_table_releationship(st.session_state["datasets"])        
-
-    with st.expander("Show detected table relationships"):
-        if table_relationships:
-            # Transform detected relationship dictionaries into a clean table structure
-            display_data = []
-            for relation in table_relationships:
-                # Add visual confidence indicator
-                badge = "🟢 HIGH" if relation["confidence_level"] == "HIGH" else "🟡 MEDIUM"
-                display_data.append({
-                    "Confidence": badge,
-                    "Score": f"{relation['confidence_score']}%",
-                    "Source (Foreign Key)": f"{relation['source_table']}.{relation['source_column']}",
-                    "Target (Primary Key)": f"{relation['target_table']}.{relation['target_column']}",
-                    "Relationship Type": relation["relationship_type"],
-                    "Value Overlap": f"{relation['scoring_breakdown']['value_overlap_percentage']}%"
-                })
-            
-            # Display relationship DataFrame without row index numbers
-            rel_df = pd.DataFrame(display_data)
-            st.dataframe(rel_df, use_container_width=True, hide_index=True)
-        else:
-            st.write("No table relationships detected ❌")
-
-
-
-    
+    # Note: Commented out from UI display, but runs automatically in backend (schema_context.py)
+    #
+    # table_relationships = detect_table_releationship(st.session_state["datasets"])        
+    # with st.expander("Show detected table relationships"):
+    #     if table_relationships:
+    #         display_data = []
+    #         for relation in table_relationships:
+    #             badge = "🟢 HIGH" if relation["confidence_level"] == "HIGH" else "🟡 MEDIUM"
+    #             display_data.append({
+    #                 "Confidence": badge,
+    #                 "Score": f"{relation['confidence_score']}%",
+    #                 "Source (Foreign Key)": f"{relation['source_table']}.{relation['source_column']}",
+    #                 "Target (Primary Key)": f"{relation['target_table']}.{relation['target_column']}",
+    #                 "Relationship Type": relation["relationship_type"],
+    #                 "Value Overlap": f"{relation['scoring_breakdown']['value_overlap_percentage']}%"
+    #             })
+    #         rel_df = pd.DataFrame(display_data)
+    #         st.dataframe(rel_df, use_container_width=True, hide_index=True)
+    #     else:
+    #         st.write("No table relationships detected ❌")
 
 
 # ------------------------------------------------------------------------------
@@ -268,28 +222,59 @@ if analyze_submitted:
             with st.spinner("🤖 AI is generating SQL query..."):
                 generated_sql = generate_SQL_query(schema_context, question)
 
-            # Display SQL Query immediately!
-            st.subheader("Generated SQL Query")
-            st.code(generated_sql, language="sql")
-
             # 3. Execute generated SQL on SQLite Database Manager
             result_df = st.session_state["db_manager"].execute_query(generated_sql)
 
-            st.subheader("Query Results")
-            st.dataframe(result_df, use_container_width=True, hide_index=True)
-            st.success("Query executed successfully! 🎉")
+            # Trigger animated toast notification immediately after SQL generation!
+            st.toast("✅ SQL Query generated successfully! Generating explanation now...", icon="🚀")
 
-            # 3.5 Generate Explanation (Spinner #2 starts only for explanation)
+            # 4. Generate Explanation (Spinner #2 starts only for explanation)
             with st.spinner("💡 AI is generating explanation..."):
                 sql_explanation = explain_SQL_query(schema_context, question, generated_sql)
 
-            # Display Explanation immediately!
-            st.subheader("Explanation behind this query")
-            st.markdown(sql_explanation)
-
-            
+            # Store query state in session state for persistence and interactive editing
+            st.session_state["active_question"] = question
+            st.session_state["active_sql"] = generated_sql
+            st.session_state["active_df"] = result_df
+            st.session_state["active_explanation"] = sql_explanation
+            st.session_state["edited_sql_input"] = generated_sql
 
         except Exception as e:
             st.error(f"❌ Failed to generate or run query: {e}")
     else:
         st.warning("Please enter a question before analyzing.")
+
+# Render AI Query Results and Interactive SQL Workbench
+if "active_sql" in st.session_state:
+    st.success("SQL Query generated successfully! 🪄✨", icon="✅")
+    st.subheader("Generated SQL Query")
+    st.code(st.session_state["active_sql"], language="sql")
+
+    # Interactive SQL Workbench: Allow users to modify and re-execute the SQL query
+    with st.expander("✏️ Edit & Re-run SQL(Optional)"):
+        edited_sql = st.text_area(
+            "Modify SQL Query:",
+            value=st.session_state.get("edited_sql_input", st.session_state["active_sql"]),
+            height=120,
+            key="edited_sql_input"
+        )
+        if st.button("⚡ Run Modified SQL"):
+            if edited_sql.strip():
+                try:
+                    new_df = st.session_state["db_manager"].execute_query(edited_sql)
+                    st.session_state["active_sql"] = edited_sql
+                    st.session_state["active_df"] = new_df
+                    st.success("Modified query executed successfully! 🎉")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Query execution failed: {e}")
+            else:
+                st.warning("Please enter a valid SQL query.")
+
+    st.subheader("Query Results")
+    if st.session_state.get("active_df") is not None:
+        st.dataframe(st.session_state["active_df"], use_container_width=True, hide_index=True)
+        st.success("Query executed successfully! 🎉")
+
+    st.subheader("Explanation behind this query")
+    st.markdown(st.session_state["active_explanation"])
