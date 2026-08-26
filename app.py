@@ -232,6 +232,9 @@ if analyze_submitted:
             with st.spinner("💡 AI is generating explanation..."):
                 sql_explanation = explain_SQL_query(schema_context, question, generated_sql)
 
+            # Clear prior cached chart config for fresh recommendation
+            st.session_state.pop("active_chart_config", None)
+
             # Store query state in session state for persistence and interactive editing
             st.session_state["active_question"] = question
             st.session_state["active_sql"] = generated_sql
