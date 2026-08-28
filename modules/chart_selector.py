@@ -65,9 +65,9 @@ def recommend_chart_config(user_question: str, df: pd.DataFrame)->dict:
         }
 
     # Fetch API Key from environment
-    api_key = os.getenv("GOOGLE_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        raise ValueError("EMINI_API_KEY environment variable is missing!")
+        raise ValueError("GEMINI_API_KEY environment variable is missing!")
 
     client = genai.Client(api_key=api_key)
 
@@ -103,11 +103,24 @@ def recommend_chart_config(user_question: str, df: pd.DataFrame)->dict:
 
     system_instruction_prompt = (
         "You are an expert Data Visualization Architect.\n"
+        "GUIDELINES FOR REASONING:\n"
+        "1. Explain in simple, plain English why this chart type fits the user question intent.\n"
+        "2. Explain how the X and Y columns map to the chart.\n"
+        "3. Keep the reasoning friendly, educational, and easy to read for any non-technical user.\n"
         "Output ONLY raw valid JSON with NO markdown code fences (like ```json)."
     )
 
-
-    models_to_try = ["gemini-3.6-flash", "gemini-3.5-flash"]
+    # Dynamically discover all active Flash and Pro text models from Gemini API
+    try:
+        all_models = client.models.list()
+        models_to_try = [
+            m.name.replace("models/", "") for m in all_models
+            if any(kind in m.name.lower() for kind in ["flash", "pro"]) 
+            and not any(skip in m.name.lower() for skip in ["tts", "audio", "image"])
+        ]
+    except Exception:
+        # Fallback list if network query fails
+        models_to_try = ["gemini-3.1-flash-lite", "gemini-3.6-flash", "gemini-1.5-pro"]
     response = None
     
     for model_name in models_to_try:
@@ -127,7 +140,7 @@ def recommend_chart_config(user_question: str, df: pd.DataFrame)->dict:
         except Exception:
             continue
     
-    if response or not response.text:
+    if not response or not response.text:
         return {"chart_type": "table", "reasoning": "Gemini API unavailable."}
 
 
@@ -140,3 +153,157 @@ def recommend_chart_config(user_question: str, df: pd.DataFrame)->dict:
         raw_text = raw_text[:-3]
 
     return json.loads(raw_text.strip())
+
+
+
+def generate_plotly_chart(df: pd.DataFrame, chart_config: dict)-> go.Figure:
+    """
+    PURPOSE:
+    Renders an interactive Plotly figure object based on the chart configuration 
+    recommended by the LLM (chart_type, x_column, y_column, title).
+    WHY PLOTLY IS USED:
+    Plotly produces interactive web charts (hover tooltips, zoom, legend toggles) 
+    that render seamlessly inside Streamlit using st.plotly_chart().
+    """
+    # Safety Check: Return None if DataFrame is missing or empty
+    if df is None or df.empty:
+        return None
+
+    # Extract chart parameters from the LLM configuration dictionary
+    chart_type = chart_config.get("chart_type", "table").lower()
+    x_col = chart_config.get("x_column")
+    y_col = chart_config.get("y_column")
+    color_col = chart_config.get("color_column")
+    title = chart_config.get("title", "Data Visualization")
+
+    # If LLM recommended table view or if x_column doesn't exist in DataFrame, return None
+    if chart_type == "table" or not x_col or x_col not in df.columns:
+        return None
+
+    # Sleek color sequence palette for Plotly charts
+    custom_color_sequence = px.colors.qualitative.Bold
+
+    try:
+        # 1. BAR CHART: Best for categorical rankings or comparisons
+        if chart_type == "bar":
+            fig = px.bar(
+                df, 
+                x=x_col, 
+                y=y_col, 
+                color=color_col if color_col in df.columns else None,
+                title=title,
+                text_auto=True if len(df) <= 15 else False, # Automatically display numeric labels on bars
+                color_discrete_sequence=custom_color_sequence
+            )
+            fig.update_layout(xaxis_title=x_col, yaxis_title=y_col)
+
+        # 2. LINE CHART: Best for time-series trends (dates, months, growth)
+        elif chart_type == "line":
+            fig = px.line(
+                df, 
+                x=x_col, 
+                y=y_col, 
+                color=color_col if color_col in df.columns else None,
+                title=title,
+                markers=True, # Show data point dots on line
+                color_discrete_sequence=custom_color_sequence
+            )
+            fig.update_layout(xaxis_title=x_col, yaxis_title=y_col)
+
+        # 3. PIE CHART: Best for percentage/share of total (<= 5 categories)
+        elif chart_type == "pie":
+            fig = px.pie(
+                df, 
+                names=x_col, 
+                values=y_col if y_col in df.columns else None,
+                title=title,
+                hole=0.3, # Donut-style hole in center
+                color_discrete_sequence=custom_color_sequence
+            )
+
+        # 4. SCATTER PLOT: Best for correlation between two numeric columns
+        elif chart_type == "scatter":
+            fig = px.scatter(
+                df, 
+                x=x_col, 
+                y=y_col, 
+                color=color_col if color_col in df.columns else None,
+                title=title,
+                color_discrete_sequence=custom_color_sequence
+            )
+            fig.update_layout(xaxis_title=x_col, yaxis_title=y_col)
+
+        # 5. HISTOGRAM: Best for numeric distributions
+        elif chart_type == "histogram":
+            fig = px.histogram(
+                df, 
+                x=x_col, 
+                color=color_col if color_col in df.columns else None,
+                title=title,
+                color_discrete_sequence=custom_color_sequence
+            )
+
+        # Default Fallback: Bar chart
+        else:
+            fig = px.bar(df, x=x_col, y=y_col, title=title)
+
+        # Apply clean modern white layout background
+        fig.update_layout(
+            template="plotly_white",
+            margin=dict(l=40, r=40, t=60, b=40)
+        )
+        return fig
+
+    except Exception as e:
+        print(f"Error generating Plotly chart: {e}")
+        return None
+
+
+# ------------------------------------------------------------------------------
+# STANDALONE TESTING BLOCK
+# ------------------------------------------------------------------------------
+# Running `python modules/chart_selector.py` directly executes this block
+# to verify chart recommendation logic on test questions and sample DataFrames.
+if __name__ == "__main__":
+    print("==========================================")
+    print("=== RUNNING STANDALONE CHART SELECTOR TEST ===")
+    print("==========================================")
+
+    # Test Scenario 1: Top Cities by Revenue (Categorical comparison -> Expect Bar Chart)
+    test_df_1 = pd.DataFrame({
+        "city": ["Kolkata", "Delhi", "Mumbai", "Chennai", "Bangalore"],
+        "total_revenue": [125000, 110000, 95000, 82000, 78000]
+    })
+    test_q_1 = "Which 5 cities generated the highest revenue?"
+
+    print(f"\n--- TEST 1: {test_q_1} ---")
+    print("Generated Context JSON:")
+    print(format_dataframe_context(test_df_1))
+
+    try:
+        config_1 = recommend_chart_config(test_q_1, test_df_1)
+        print("\nAI Recommended Config:")
+        print(json.dumps(config_1, indent=2))
+
+        fig_1 = generate_plotly_chart(test_df_1, config_1)
+        print(f"Plotly Figure Generated Successfully: {fig_1 is not None}")
+    except Exception as e:
+        print(f"Test 1 Failed: {e}")
+
+    # Test Scenario 2: Monthly Sales Growth (Time-series trend -> Expect Line Chart)
+    test_df_2 = pd.DataFrame({
+        "month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+        "sales_growth": [10000, 14000, 18000, 22000, 29000, 35000]
+    })
+    test_q_2 = "Show me monthly sales growth trends over time."
+
+    print(f"\n--- TEST 2: {test_q_2} ---")
+    try:
+        config_2 = recommend_chart_config(test_q_2, test_df_2)
+        print("\nAI Recommended Config:")
+        print(json.dumps(config_2, indent=2))
+
+        fig_2 = generate_plotly_chart(test_df_2, config_2)
+        print(f"Plotly Figure Generated Successfully: {fig_2 is not None}")
+    except Exception as e:
+        print(f"Test 2 Failed: {e}")

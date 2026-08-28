@@ -17,6 +17,9 @@ from modules.sql_generator import generate_SQL_query
 # Import SQL explainer from sql_explainer module
 from modules.sql_explainer import explain_SQL_query
 
+# Import Chart Selector module for automatic chart recommendations & rendering
+from modules.chart_selector import generate_plotly_chart, recommend_chart_config
+
 # Set main application title
 st.title("AI Data Analyst")
 
@@ -267,6 +270,10 @@ if "active_sql" in st.session_state:
                     new_df = st.session_state["db_manager"].execute_query(edited_sql)
                     st.session_state["active_sql"] = edited_sql
                     st.session_state["active_df"] = new_df
+
+                    # Clear old chart so new modified SQL gets a fresh chart recommendation
+                    st.session_state.pop("active_chart_config", None)
+        
                     st.success("Modified query executed successfully! 🎉")
                     st.rerun()
                 except Exception as e:
@@ -278,6 +285,40 @@ if "active_sql" in st.session_state:
     if st.session_state.get("active_df") is not None:
         st.dataframe(st.session_state["active_df"], use_container_width=True, hide_index=True)
         st.success("Query executed successfully! 🎉")
+        st.subheader("Explanation behind this query")
+        st.markdown(st.session_state["active_explanation"])
 
-    st.subheader("Explanation behind this query")
-    st.markdown(st.session_state["active_explanation"])
+    # --------------------------------------------------------------------------
+    # STEP 6: AI-Powered Automatic Chart Selector & Rendering
+    # --------------------------------------------------------------------------
+    active_df = st.session_state.get("active_df")
+    active_question = st.session_state.get("active_question", "")
+
+    if active_df is not None and not active_df.empty:
+        st.subheader("AI generated visualization chart")
+
+        # Fetch or generate chart that AI has selected
+        if "active_chart_config" not in st.session_state:
+            with st.spinner("AI is analyzing query and generating chart based on your question..."):
+                try:
+                    st.session_state["active_chart_config"] = recommend_chart_config(active_question, active_df)
+                except Exception as e:
+                    st.error(f"Could not able to generate chart {e}")
+                    st.session_state["active_chart_config"] = None
+
+        chart_config = st.session_state.get("active_chart_config")
+        if chart_config:
+            figure = generate_plotly_chart(active_df, chart_config)
+            if figure is not None:
+                st.plotly_chart(figure, use_container_width=True)
+
+                # Show AI reasoning for chart generation
+                if "reasoning" in chart_config:
+                    st.info(f"**AI Reasoning** : {chart_config['reasoning']}")
+
+            else:
+                st.info("AI could not determine appropriate chart type for this query. Here is the raw data instead:")
+                # Display raw data as a fallback table
+                st.dataframe(active_df, use_container_width=True)
+
+    
