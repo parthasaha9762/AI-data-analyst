@@ -20,6 +20,9 @@ from modules.sql_explainer import explain_SQL_query
 # Import Chart Selector module for automatic chart recommendations & rendering
 from modules.chart_selector import generate_plotly_chart, recommend_chart_config
 
+# Import Query Validator module for detecting gibberish & non-analytic prompts
+from modules.query_validator import is_meaningful_query
+
 # Set main application title
 st.title("AI Data Analyst")
 
@@ -186,72 +189,80 @@ if uploaded_files:
 
 
 # ------------------------------------------------------------------------------
-# STEP 5: Natural Language Query Interface
+# STEP 5: Natural Language Query Interface (Sticky Bottom Chatbot Bar)
 # ------------------------------------------------------------------------------
 
-# Form allowing user submission via Analyze button or pressing Enter
-with st.form("query_form"):
-    question = st.text_input("Enter your question here", placeholder="Ask a question about your data in your natural language")
+# Custom CSS styling for the sticky bottom chat bar
+st.markdown("""
+<style>
+div[data-testid="stChatInput"] {
+    border-radius: 12px;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.15);
+}
+</style>
+""", unsafe_allow_html=True)
 
-    # Custom CSS for input field instruction text
-    st.markdown("""
-    <style>
-    div[data-testid="InputInstructions"] {
-        font-size: 0px;
-    }
-    div[data-testid="InputInstructions"]::after {
-        content: "Press Enter or click Analyze button to Analyze 🚀";
-        font-size: 12px;
-        color: #888;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+# Fixed Chat Input anchored to the bottom of the viewport throughout scrolling
+user_prompt = st.chat_input("💬 Ask any question about your data (e.g., 'What are the top 5 sales by category?')...")
 
-    # Form submit button
-    analyze_submitted = st.form_submit_button("Analyze")
+# Handle query submission logic from fixed chat bar
+if user_prompt:
+    if not st.session_state.get("datasets"):
+        st.warning("⚠️ Please upload at least one CSV file first before analyzing!")
+    elif user_prompt.strip():
+        question = user_prompt.strip()
 
-# Handle query submission logic
-if analyze_submitted:
-    if not st.session_state["datasets"]:
-        st.warning("Please upload at least one CSV file first before analyzing!")
-    elif question.strip():
-        st.write(f"🔍 **Analyzing Question:** *\"{question}\"*")
+        # 0. Tier 1: Fast Heuristic Validation (0ms response)
+        is_valid, warning_msg = is_meaningful_query(question)
+        if not is_valid:
+            st.warning(f"⚠️ {warning_msg}")
+        else:
+            st.toast(f"🔍 Analyzing: \"{question}\"", icon="🤖")
 
-        # 1. Fetch current schema context
-        schema_context = generate_schema_context(st.session_state["datasets"])
+            # 1. Fetch current schema context
+            schema_context = generate_schema_context(st.session_state["datasets"])
 
-        try:
-            # 2. Call LLM to generate SQL query (Spinner #1 stops as soon as SQL is ready)
-            with st.spinner("🤖 AI is generating SQL query..."):
-                generated_sql = generate_SQL_query(schema_context, question)
+            try:
+                # 2. Call LLM to generate SQL query (Spinner #1 stops as soon as SQL is ready)
+                with st.spinner("🤖 AI is generating SQL query..."):
+                    generated_sql = generate_SQL_query(schema_context, question)
 
-            # 3. Execute generated SQL on SQLite Database Manager
-            result_df = st.session_state["db_manager"].execute_query(generated_sql)
+                # Tier 2: Check if LLM flagged prompt as non-analytical / gibberish
+                if generated_sql.strip() == "INVALID_QUERY":
+                    st.warning("⚠️ Your question doesn't appear to be related to your uploaded dataset or data analysis. Please ask a specific question about your data (e.g., 'What are the top 5 sales by category?').")
+                else:
+                    # 3. Execute generated SQL on SQLite Database Manager
+                    result_df = st.session_state["db_manager"].execute_query(generated_sql)
 
-            # Trigger animated toast notification immediately after SQL generation!
-            st.toast("✅ SQL Query generated successfully! Generating explanation now...", icon="🚀")
+                    # Trigger animated toast notification immediately after SQL generation!
+                    st.toast("✅ SQL Query generated successfully! Generating explanation now...", icon="🚀")
 
-            # 4. Generate Explanation (Spinner #2 starts only for explanation)
-            with st.spinner("💡 AI is generating explanation..."):
-                sql_explanation = explain_SQL_query(schema_context, question, generated_sql)
+                    # 4. Generate Explanation (Spinner #2 starts only for explanation)
+                    with st.spinner("💡 AI is generating explanation..."):
+                        sql_explanation = explain_SQL_query(schema_context, question, generated_sql)
 
-            # Clear prior cached chart config for fresh recommendation
-            st.session_state.pop("active_chart_config", None)
+                    # Clear prior cached chart config for fresh recommendation
+                    st.session_state.pop("active_chart_config", None)
 
-            # Store query state in session state for persistence and interactive editing
-            st.session_state["active_question"] = question
-            st.session_state["active_sql"] = generated_sql
-            st.session_state["active_df"] = result_df
-            st.session_state["active_explanation"] = sql_explanation
-            st.session_state["edited_sql_input"] = generated_sql
+                    # Store query state in session state for persistence and interactive editing
+                    st.session_state["active_question"] = question
+                    st.session_state["active_sql"] = generated_sql
+                    st.session_state["active_df"] = result_df
+                    st.session_state["active_explanation"] = sql_explanation
+                    st.session_state["edited_sql_input"] = generated_sql
 
-        except Exception as e:
-            st.error(f"❌ Failed to generate or run query: {e}")
-    else:
-        st.warning("Please enter a question before analyzing.")
+                    # Append to query history for tracking
+                    if "query_history" not in st.session_state:
+                        st.session_state["query_history"] = []
+                    st.session_state["query_history"].append(question)
+
+            except Exception as e:
+                st.error(f"❌ Failed to generate or run query: {e}")
 
 # Render AI Query Results and Interactive SQL Workbench
 if "active_sql" in st.session_state:
+    st.markdown("---")
+    st.info(f"💬 **Current Question:** *\"{st.session_state.get('active_question', '')}\"*", icon="💡")
     st.success("SQL Query generated successfully! 🪄✨", icon="✅")
     st.subheader("Generated SQL Query")
     st.code(st.session_state["active_sql"], language="sql")

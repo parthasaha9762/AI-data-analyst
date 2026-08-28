@@ -35,8 +35,9 @@ def generate_SQL_query(schema_context: str, user_question: str)-> str:
     "1. Use ONLY table names and column names present in the DATABASE SCHEMA.\n"
     "2. Do NOT invent table names or column names.\n"
     "3. Output ONLY the raw executable SQL query. Do NOT include markdown formatting (like ```sql or ```), explanations, or notes.\n"
-    "4. Always end the query with a semicolon (;).\n"
-    "5. Format the SQL query cleanly across multiple lines (place FROM, JOIN, WHERE, GROUP BY, ORDER BY, and LIMIT on new lines)."
+    "4. Always end valid SQL queries with a semicolon (;).\n"
+    "5. Format the SQL query cleanly across multiple lines (place FROM, JOIN, WHERE, GROUP BY, ORDER BY, and LIMIT on new lines).\n"
+    "6. If the user question is complete gibberish, random keyboard letters (e.g. 'asdfghjkl'), or completely unrelated to data analysis, output EXACTLY the single keyword: INVALID_QUERY"
     )
 
     # Call the Gemini API key latest version
