@@ -229,7 +229,7 @@ if user_prompt:
 
                 # Tier 2: Check if LLM flagged prompt as non-analytical / gibberish
                 if generated_sql.strip() == "INVALID_QUERY":
-                    st.warning("⚠️ Your question doesn't appear to be related to your uploaded dataset or data analysis. Please ask a specific question about your data (e.g., 'What are the top 5 sales by category?').")
+                    st.error("⚠️ Your question doesn't appear to be related to your uploaded dataset or data analysis. Please ask a specific question about your data (e.g., 'What are the top 5 sales by category?').")
                 else:
                     # 3. Execute generated SQL on SQLite Database Manager
                     result_df = st.session_state["db_manager"].execute_query(generated_sql)
@@ -241,8 +241,9 @@ if user_prompt:
                     with st.spinner("💡 AI is generating explanation..."):
                         sql_explanation = explain_SQL_query(schema_context, question, generated_sql)
 
-                    # Clear prior cached chart config for fresh recommendation
+                    # Clear prior cached chart config and reset chart display choice for fresh query
                     st.session_state.pop("active_chart_config", None)
+                    st.session_state["show_chart"] = None
 
                     # Store query state in session state for persistence and interactive editing
                     st.session_state["active_question"] = question
@@ -282,8 +283,9 @@ if "active_sql" in st.session_state:
                     st.session_state["active_sql"] = edited_sql
                     st.session_state["active_df"] = new_df
 
-                    # Clear old chart so new modified SQL gets a fresh chart recommendation
+                    # Clear old chart and reset chart state so new modified SQL gets a fresh choice
                     st.session_state.pop("active_chart_config", None)
+                    st.session_state["show_chart"] = None
         
                     st.success("Modified query executed successfully! 🎉")
                     st.rerun()
@@ -300,36 +302,65 @@ if "active_sql" in st.session_state:
         st.markdown(st.session_state["active_explanation"])
 
     # --------------------------------------------------------------------------
-    # STEP 6: AI-Powered Automatic Chart Selector & Rendering
+    # STEP 6: User-Controlled AI Visualization Chart Section
     # --------------------------------------------------------------------------
     active_df = st.session_state.get("active_df")
     active_question = st.session_state.get("active_question", "")
 
     if active_df is not None and not active_df.empty:
-        st.subheader("AI generated visualization chart")
+        st.markdown("---")
+        show_chart = st.session_state.get("show_chart")
 
-        # Fetch or generate chart that AI has selected
-        if "active_chart_config" not in st.session_state:
-            with st.spinner("AI is analyzing query and generating chart based on your question..."):
-                try:
-                    st.session_state["active_chart_config"] = recommend_chart_config(active_question, active_df)
-                except Exception as e:
-                    st.error(f"Could not able to generate chart {e}")
-                    st.session_state["active_chart_config"] = None
+        # Case 1: Prompt user to decide whether they want an AI-generated visualization
+        if show_chart is None:
+            st.info("📊 **Would you like to see an AI-generated visualization chart for these query results?**", icon="📈")
+            col1, col2, _ = st.columns([1.5, 1.5, 3])
+            with col1:
+                if st.button("📊 Yes, Generate AI Chart", type="primary", use_container_width=True):
+                    st.session_state["show_chart"] = True
+                    st.rerun()
+            with col2:
+                if st.button("❌ No, Table View is Enough", use_container_width=True):
+                    st.session_state["show_chart"] = False
+                    st.rerun()
 
-        chart_config = st.session_state.get("active_chart_config")
-        if chart_config:
-            figure = generate_plotly_chart(active_df, chart_config)
-            if figure is not None:
-                st.plotly_chart(figure, use_container_width=True)
+        # Case 2: User chose to generate and view the AI chart
+        elif show_chart is True:
+            st.subheader("📊 AI Generated Visualization Chart")
 
-                # Show AI reasoning for chart generation
-                if "reasoning" in chart_config:
-                    st.info(f"**AI Reasoning** : {chart_config['reasoning']}")
+            # Fetch or generate chart that AI has selected
+            if "active_chart_config" not in st.session_state:
+                with st.spinner("🤖 AI is analyzing query and generating chart based on your question..."):
+                    try:
+                        st.session_state["active_chart_config"] = recommend_chart_config(active_question, active_df)
+                    except Exception as e:
+                        st.error(f"Could not generate chart: {e}")
+                        st.session_state["active_chart_config"] = None
 
+            chart_config = st.session_state.get("active_chart_config")
+            if chart_config:
+                figure = generate_plotly_chart(active_df, chart_config)
+                if figure is not None:
+                    st.plotly_chart(figure, use_container_width=True)
+
+                    # Show AI reasoning for chart generation
+                    if "reasoning" in chart_config:
+                        st.info(f"💡 **AI Reasoning:** {chart_config['reasoning']}")
+
+                    # Option to hide/collapse the visualization chart
+                    if st.button("🙈 Hide Visualization Chart", key="hide_chart_btn"):
+                        st.session_state["show_chart"] = False
+                        st.rerun()
+                else:
+                    st.info("ℹ️ AI could not determine an appropriate chart type for this query. The tabular view above contains all result details.")
             else:
-                st.info("AI could not determine appropriate chart type for this query. Here is the raw data instead:")
-                # Display raw data as a fallback table
-                st.dataframe(active_df, use_container_width=True)
+                st.info("ℹ️ Visualization could not be generated for this query.")
+
+        # Case 3: User chose not to see the visualization
+        elif show_chart is False:
+            st.caption("ℹ️ Visualization skipped. You are viewing the tabular results above.")
+            if st.button("📊 Generate Visualization Chart Now", key="gen_chart_later_btn"):
+                st.session_state["show_chart"] = True
+                st.rerun()
 
     
