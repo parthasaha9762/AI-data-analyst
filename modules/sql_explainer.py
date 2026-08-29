@@ -57,7 +57,7 @@ def explain_SQL_query(schema_context: str, user_question: str, generated_sql: st
         "4. Keep it short, concise, and easy to read."
     )
 
-    models_to_try = ["gemini-3.6-flash", "gemini-3.5-flash"]
+    models_to_try = ["gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.1-flash-lite"]
     response = None
     for model_name in models_to_try:
         try:

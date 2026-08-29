@@ -4,6 +4,7 @@ Chart Selector Module - Starter Skeleton
 Follow along step-by-step to implement the AI-powered Chart Selector!
 """
 
+import re
 import os
 import json
 import pandas as pd
@@ -15,6 +16,10 @@ from google.genai import types
 # TODO 1: Implement format_dataframe_context(df)
 # TODO 2: Implement recommend_chart_config(user_question, df)
 # TODO 3: Implement generate_plotly_chart(df, chart_config)
+
+# Module-level cache to remember discovered models across calls
+_CACHED_MODELS = None
+_WORKING_MODEL = None
 
 
 def format_dataframe_context(df: pd.DataFrame)-> str:
@@ -46,7 +51,60 @@ def format_dataframe_context(df: pd.DataFrame)-> str:
     return json.dumps(metadata, indent=2)
 
 
+def get_sorted_flash_models(client)-> list:
+    """
+    Dynamically discovers all available models from Gemini API,
+    filters for fast Flash/Flash-Lite models, and sorts them by version 
+    descending (newest first). Caches the result so it only queries once.
+    """
+    global _CACHED_MODELS, _WORKING_MODEL
+
+    # If we already found a verified working model in this session, prioritize it immediately and return the working model with the backup models if in case working model got a temporary spike
+    if _WORKING_MODEL:
+        return [_WORKING_MODEL] + [backup_model for backup_model in (_CACHED_MODELS or []) if backup_model != _WORKING_MODEL]
+
+    # If already cached, return the cached list without calling the API again
+    if _CACHED_MODELS:
+        return _CACHED_MODELS
+
+    # First try to find a working model, prioritize Flash models (fast, cheap)
+    try:
+        all_models = list(client.models.list())
+        extracted = []
+
+        for m in all_models:
+            name = m.name.replace("models/", "")
+
+            # Filter: only look for flash text models, skipping audio, tts, image, or embedding models
+            if "flash" in name.lower() and not any(skip in name.lower() for skip in ["tts", "audio", "image", "embedding"]):
+                # Extract numeric version: e.g. "3.6", "3.5", "3.1", "2.5"
+                version_match = re.search(r"(\d+(?:\.\d+)?)", name)
+                version = float(version_match.group(1)) if version_match else 0.0
+
+                is_lite = "lite" in name.lower()
+                is_stable = "preview" not in name.lower()
+
+                # Score: (Model Name, Version Number, Is Lite, Is Stable)
+                extracted.append((name, version, is_lite, is_stable))
+
+        # Sort: Lite models first -> Newest version first -> Stable over Preview
+        extracted.sort(
+            key=lambda x: (x[2], x[1], x[3]),
+            reverse=True # sorts descending by (version_number, is_lite, is_stable). Since False < True, Stable comes before Preview.
+        )
+        _CACHED_MODELS = [item[0] for item in extracted]        
+
+    except Exception:
+        # Safe fallback if network is unreachable
+        _CACHED_MODELS = ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.1-flash-lite"]
+
+    return _CACHED_MODELS
+
+
+
 def recommend_chart_config(user_question: str, df: pd.DataFrame)->dict:
+    global _WORKING_MODEL
+
     """
     PURPOSE:
     Queries Google Gemini LLM to analyze the User Question intent AND 
@@ -110,19 +168,11 @@ def recommend_chart_config(user_question: str, df: pd.DataFrame)->dict:
         "Output ONLY raw valid JSON with NO markdown code fences (like ```json)."
     )
 
-    # Dynamically discover all active Flash and Pro text models from Gemini API
-    try:
-        all_models = client.models.list()
-        models_to_try = [
-            m.name.replace("models/", "") for m in all_models
-            if any(kind in m.name.lower() for kind in ["flash", "pro"]) 
-            and not any(skip in m.name.lower() for skip in ["tts", "audio", "image"])
-        ]
-    except Exception:
-        # Fallback list if network query fails
-        models_to_try = ["gemini-3.1-flash-lite", "gemini-3.6-flash", "gemini-1.5-pro"]
+    # 1. Fetch dynamically sorted models (newest & fastest first)
+    models_to_try = get_sorted_flash_models(client)
     response = None
-    
+
+    # 2. Loop until a working model is found (Model Retry Logic)
     for model_name in models_to_try:
         try:
             response = client.models.generate_content(
@@ -136,6 +186,9 @@ def recommend_chart_config(user_question: str, df: pd.DataFrame)->dict:
             )
             
             if response and response.text:
+
+                # Save this model for future requests
+                _WORKING_MODEL = model_name
                 break
         except Exception:
             continue

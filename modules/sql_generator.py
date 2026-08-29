@@ -43,7 +43,7 @@ def generate_SQL_query(schema_context: str, user_question: str)-> str:
     # Call the Gemini API key latest version
     # Try models with automatic fallback if Google experiences a 503 spike
 
-    models_to_try = ["gemini-3.6-flash", "gemini-3.5-flash"]
+    models_to_try = ["gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.1-flash-lite"]
     response = None
 
     for model_name in models_to_try:
