@@ -135,16 +135,16 @@ if uploaded_files:
                 st.write(clean_dtypes)
 
     # --------------------------------------------------------------------------
-    # STEP 2.5: AI-Readable Database Schema Context Generation
+    # STEP 2.5: AI-Readable Database Schema Context Generation [UI Hidden]
     # --------------------------------------------------------------------------
 
     # Generate a clean, structured text representation of all tables, columns,
     # and detected relationships formatted specifically for LLM prompt context
     schema_context = generate_schema_context(st.session_state["datasets"])
 
-    # Display the formatted schema description in a copyable monospaced code block
-    with st.expander("Show AI-Readable Schema Context (for LLM)"):
-        st.code(schema_context, language="text")
+    # Note: Commented out from UI display, but runs in backend for LLM context
+    # with st.expander("Show AI-Readable Schema Context (for LLM)"):
+    #     st.code(schema_context, language="text")
 
 
     # Load all uploaded and cleaned datasets into SQLite database tables
