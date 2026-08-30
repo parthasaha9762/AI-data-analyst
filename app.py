@@ -23,6 +23,10 @@ from modules.chart_selector import generate_plotly_chart, recommend_chart_config
 # Import Query Validator module for detecting gibberish & non-analytic prompts
 from modules.query_validator import is_meaningful_query
 
+# Import Insight Generator module for generating business insights
+from modules.insight_generator import generate_business_insights
+
+
 # Set main application title
 st.title("AI Data Analyst")
 
@@ -241,8 +245,9 @@ if user_prompt:
                     with st.spinner("💡 AI is generating explanation..."):
                         sql_explanation = explain_SQL_query(schema_context, question, generated_sql)
 
-                    # Clear prior cached chart config and reset chart display choice for fresh query
+                    # Clear prior cached chart config and reset chart display choice and insights for fresh query
                     st.session_state.pop("active_chart_config", None)
+                    st.session_state.pop("active_insights", None)
                     st.session_state["show_chart"] = None
 
                     # Store query state in session state for persistence and interactive editing
@@ -283,8 +288,9 @@ if "active_sql" in st.session_state:
                     st.session_state["active_sql"] = edited_sql
                     st.session_state["active_df"] = new_df
 
-                    # Clear old chart and reset chart state so new modified SQL gets a fresh choice
+                    # Clear old chart, insights and reset chart state so new modified SQL gets a fresh choice
                     st.session_state.pop("active_chart_config", None)
+                    st.session_state.pop("active_insights", None)
                     st.session_state["show_chart"] = None
         
                     st.success("Modified query executed successfully! 🎉")
@@ -363,4 +369,37 @@ if "active_sql" in st.session_state:
                 st.session_state["show_chart"] = True
                 st.rerun()
 
-    
+    # --------------------------------------------------------------------------
+    # STEP 7: Executive Business Insights & Strategic Projections
+    # --------------------------------------------------------------------------
+    if active_df is not None and not active_df.empty:
+        st.markdown("---")
+        st.subheader("Business Insights & Recommendations")
+
+        # Check if insights are already generated in session state
+        if "active_insights" not in st.session_state or st.session_state["active_insights"] is None:
+            if st.button("💡 Genearte AI-Powered Business Insights (AI Pro)", type="primary", use_container_width=True):
+                with st.spinner("🤖 AI Pro is analyzing trends, root causes, and future improvement potential..."):
+                    chart_config = st.session_state.get("active_chart_config")
+                    current_sql = st.session_state.get("active_sql")
+                    
+                    insights = generate_business_insights(
+                        user_question=active_question,
+                        df=active_df,
+                        chart_config=chart_config,
+                        generated_sql=current_sql
+                    )
+                    st.session_state["active_insights"] = insights
+                    st.rerun()
+
+        else:
+            # Display generated insights
+            st.markdown(st.session_state["active_insights"])
+
+            # Button to refresh/regenerate insights if desired
+            if st.button("Refresh business insights"):
+                st.session_state.pop("active_insights", None)
+                st.rerun()
+
+                
+        
