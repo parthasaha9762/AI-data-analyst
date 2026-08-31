@@ -154,7 +154,8 @@ def recommend_chart_config(user_question: str, df: pd.DataFrame)->dict:
     "y_column": "Exact column name from DataFrame for Y-axis",
     "color_column": null,
     "title": "A clean, executive chart title",
-    "reasoning": "2-3 sentence explanation of why this chart was selected"
+    "reasoning": "2-3 sentence explanation of why this chart was selected",
+    "conclusion": "A single, high-impact sentence summarizing the #1 fact shown in the chart (e.g., 'Home & Kitchen leads all categories with $833.6K in revenue (21.27%), followed closely by Sports at 20.25%.')"
     }}
     """
 
@@ -164,7 +165,10 @@ def recommend_chart_config(user_question: str, df: pd.DataFrame)->dict:
         "GUIDELINES FOR REASONING:\n"
         "1. Explain in simple, plain English why this chart type fits the user question intent.\n"
         "2. Explain how the X and Y columns map to the chart.\n"
-        "3. Keep the reasoning friendly, educational, and easy to read for any non-technical user.\n"
+        "3. Keep the reasoning friendly, educational, and easy to read for any non-technical user.\n\n"
+        "GUIDELINES FOR CONCLUSION:\n"
+        "1. Write a single, sharp sentence summarizing the #1 fact or top performer shown in the chart.\n"
+        "2. Include the leading category/city name and its percentage or dollar lead.\n\n"
         "Output ONLY raw valid JSON with NO markdown code fences (like ```json)."
     )
 

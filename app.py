@@ -349,6 +349,11 @@ if "active_sql" in st.session_state:
                 if figure is not None:
                     st.plotly_chart(figure, use_container_width=True)
 
+                    # Single-Line Executive Chart Conclusion
+                    if "conclusion" in chart_config and chart_config["conclusion"]:
+                        clean_conclusion = chart_config["conclusion"].replace("$", r"\$")
+                        st.write(f"**THE CONCLUSION:** {clean_conclusion}\n\n")
+
                     # Show AI reasoning for chart generation
                     if "reasoning" in chart_config:
                         st.info(f"💡 **AI Reasoning:** {chart_config['reasoning']}")
