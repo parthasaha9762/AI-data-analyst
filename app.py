@@ -370,16 +370,16 @@ if "active_sql" in st.session_state:
                 st.rerun()
 
     # --------------------------------------------------------------------------
-    # STEP 7: Executive Business Insights & Strategic Projections
+    # STEP 7: Executive Business Insights & Growth Actions
     # --------------------------------------------------------------------------
     if active_df is not None and not active_df.empty:
         st.markdown("---")
-        st.subheader("Business Insights & Recommendations")
+        st.subheader("💡 Executive Business Insights & Growth Actions")
 
         # Check if insights are already generated in session state
         if "active_insights" not in st.session_state or st.session_state["active_insights"] is None:
-            if st.button("💡 Genearte AI-Powered Business Insights (AI Pro)", type="primary", use_container_width=True):
-                with st.spinner("🤖 AI Pro is analyzing trends, root causes, and future improvement potential..."):
+            if st.button("💡 Generate AI-Powered Business Insights (AI Pro)", type="primary", use_container_width=True):
+                with st.spinner("🤖 AI Pro is analyzing trends and formulating key takeaways..."):
                     chart_config = st.session_state.get("active_chart_config")
                     current_sql = st.session_state.get("active_sql")
                     
@@ -393,11 +393,12 @@ if "active_sql" in st.session_state:
                     st.rerun()
 
         else:
-            # Display generated insights
-            st.markdown(st.session_state["active_insights"])
+            # Display generated insights inside a clean container
+            with st.container():
+                st.markdown(st.session_state["active_insights"])
 
             # Button to refresh/regenerate insights if desired
-            if st.button("Refresh business insights"):
+            if st.button("🔄 Refresh Business Insights", key="refresh_insights_btn"):
                 st.session_state.pop("active_insights", None)
                 st.rerun()
 

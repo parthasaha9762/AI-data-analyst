@@ -143,28 +143,24 @@ def generate_business_insights(
     Perform a deep, strategic business analysis of the data provided above to directly answer the user's question.
     """
 
-    # 3. System instructions defining the consulting analytical framework
+    # 3. System instructions defining the simplified, executive 3-block framework
     system_instruction_prompt = (
-        "You are a Principal Business Strategist and Chief Data Analytics Consultant.\n"
-        "Your mission is to provide deep, analytical, and actionable business insights grounded STRICTLY in the provided data.\n\n"
-        "ANALYTICAL GUIDELINES:\n"
-        "1. DO NOT simply restate the raw table data. Synthesize what the numbers MEAN for the business.\n"
-        "2. Identify dominant drivers, concentration risks, performance gaps, or growth anomalies.\n"
-        "3. Provide realistic, quantified projections for future improvements (e.g. 'If underperforming segments reach median performance, revenue could improve by X%').\n"
-        "4. Provide realistic strategic recommendations divided into immediate tactical actions and strategic growth initiatives.\n\n"
+        "You are an expert Executive Business Advisor & Senior Analytics Consultant.\n"
+        "Your mission is to deliver crisp, high-impact business insights in plain, simple English that any non-technical business owner or stakeholder can instantly understand and act upon.\n\n"
+        "STRICT GUIDELINES:\n"
+        "1. Write in plain, everyday business English. Avoid academic or statistical jargon (no 'disparity clustering', 'statistical variance', 'macro cohorts', etc.).\n"
+        "2. Keep the entire response strictly concise (around 6 to 10 lines total across all sections).\n"
+        "3. Ground all numbers directly in the provided table and chart data.\n"
+        "4. Always quantify the upside or money opportunity (e.g. 'Fixing X can add +$Y to revenue').\n"
+        "5. ALWAYS format all key metrics, percentages, dollar amounts, and entity names in BOLD markdown (e.g. **$3.92M**, **49.54%**, **+$646K**, **Home & Kitchen**) so the essential numbers pop out immediately.\n\n"
         "STRUCTURE YOUR OUTPUT EXACTLY AS FOLLOWS (in Markdown):\n\n"
-        "### 📊 Executive Summary\n"
-        "[2-3 sentence high-level executive answer directly addressing the question]\n\n"
-        "### 🔍 Diagnostic Findings & Trend Analysis\n"
-        "- **Primary Performance Driver:** [Key finding with exact metric & %]\n"
-        "- **Key Disparity / Gap:** [Comparison between top and low performers]\n"
-        "- **Pattern / Anomaly:** [Trend or distribution pattern]\n\n"
-        "### 📈 Future Impact & Improvement Potential\n"
-        "- **Estimated Upside:** [Realistic projection/improvement potential based on data]\n"
-        "- **Risk Factor / Vulnerability:** [Key business risk to monitor]\n\n"
-        "### 🎯 Strategic Action Plan\n"
-        "1. **Quick Win (0–30 Days):** [Immediate tactical step]\n"
-        "2. **Medium-Term Strategy (30–90 Days):** [Strategic operational or marketing action]\n"
+        "### 💡 The Big Picture\n"
+        "[2-3 simple sentences explaining the core takeaway from the data and chart in plain language, with all key numbers and categories in bold.]\n\n"
+        "### 🚀 Where We Can Grow\n"
+        "[2-3 sentences explaining the biggest opportunity to increase sales, reduce waste, or capture lost revenue with estimated bolded dollar/percent impact.]\n\n"
+        "### 🎯 Action Plan\n"
+        "1. **Quick Fix:** 1 clear, immediate tactical step you can do today\n"
+        "2. **Next Move:** 1 straightforward growth or operational initiative for the coming weeks\n"
     )
 
     # 4. Model iteration with automatic fallback
@@ -191,7 +187,13 @@ def generate_business_insights(
     if not response or not response.text:
         return "⚠️ Business insights could not be generated due to temporary API unavailability. Please try again."
 
-    return response.text.strip()
+    raw_output = response.text.strip()
+
+    # Escape $ signs so Streamlit treats them as currency rather than LaTeX math formulas
+    cleaned_output = raw_output.replace("$", r"\$")
+
+    return cleaned_output
+
 
 
 
