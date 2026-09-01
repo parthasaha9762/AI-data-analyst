@@ -90,7 +90,7 @@ def clean_sql_output(raw_text: str) -> str:
     return text.strip()
 
 
-def generate_SQL_query(schema_context: str, user_question: str) -> str:
+def generate_SQL_query(schema_context: str, user_question: str, conversation_history: list = None) -> str:
     """
     Generates a valid SQLite SQL query based on database schema and user question.
     Features dynamic model discovery, intelligent escalation, and fallback resilience.
@@ -104,15 +104,26 @@ def generate_SQL_query(schema_context: str, user_question: str) -> str:
 
     client = genai.Client(api_key=api_key)
 
+    # 1. Format previous conversation history if it exists
+    history_text = ""
+    if conversation_history:
+        history_text = "\nPREVIOUS CONVERSATION:\n"
+
+        for item in conversation_history:
+            history_text += f"- User Question: {item['question']}\n"
+            history_text += f"- Generated SQL: {item['sql']}\n\n"
+
     # Build user prompt
     prompt = f"""
     DATABASE SCHEMA:
     {schema_context}
 
-    USER QUESTION:
+    {history_text}
+
+    CURRENT USER QUESTION:
     {user_question}
 
-    Please generate a valid SQLite SQL query based on the schema and the question.
+    Please generate a valid SQLite SQL query based on the schema, previous conversation (if relevant), and the current question.
     """
 
     # Set comprehensive, future-proof system instruction
@@ -127,6 +138,11 @@ def generate_SQL_query(schema_context: str, user_question: str) -> str:
         "6. If the user asks for derived metrics, ratios, rates, or business concepts (e.g. cancellation rate, average order value, lost revenue, high value customers, margin), compute them using standard SQL expressions (SUM, AVG, COUNT, CASE statements, and clean column aliases).\n"
         "7. Ignore any prefixes like 'Scenario 1:', 'Scenario 2:', 'Question:', or bullet points in the user input. Focus on answering the analytical intent.\n"
         "8. ONLY output the exact single keyword INVALID_QUERY if the prompt is complete gibberish (e.g. 'asdfghjkl') or completely non-analytical (e.g. 'tell me a joke')."
+        
+        "CONVERSATIONAL MEMORY RULES:\n"
+        "1. If the user's question is a FOLLOW-UP to the recent conversation (e.g., 'now filter for 2024', 'only show top 3', 'also include city', 'exclude cancellations'), MODIFY or EXTEND the previous SQL query appropriately.\n"
+        "2. If the user's question is on a COMPLETELY NEW TOPIC unrelated to the previous turns, IGNORE the history and write a fresh SQL query from scratch.\n"
+        
     )
 
     # Fetch dynamically discovered and sorted models
@@ -164,14 +180,66 @@ def generate_SQL_query(schema_context: str, user_question: str) -> str:
     return last_valid_response
 
 
-# Quick standalone test
+# Quick standalone test for Conversational Memory feature
 if __name__ == "__main__":
-    test_schema = "TABLE: users\n Columns:\n- id: INTEGER\n- name: VARCHAR"
-    test_question = "show me all users"
+    test_schema = (
+        "TABLE: orders\n"
+        " Columns:\n"
+        "- order_id: INTEGER (Primary Key)\n"
+        "- product_category: TEXT\n"
+        "- sales_amount: FLOAT\n"
+        "- order_date: TEXT\n"
+        "- city: TEXT\n"
+    )
 
+    # ---------------------------------------------------
+    # Test 1: Fresh question with NO conversation history
+    # ---------------------------------------------------
+    print("=" * 60)
+    print("TEST 1: Fresh question (No history)")
+    print("=" * 60)
     try:
-        print(f"Your output: {generate_SQL_query(test_schema, test_question)}")
+        question_1 = "What are the top 5 product categories by total sales?"
+        sql_1 = generate_SQL_query(test_schema, question_1)
+        print(f"Question: {question_1}")
+        print(f"SQL Output:\n{sql_1}\n")
     except Exception as e:
-        print(e)
+        print(f"Error: {e}\n")
+
+    # ---------------------------------------------------
+    # Test 2: Follow-up question WITH conversation history
+    # (Should modify the previous query, not start fresh)
+    # ---------------------------------------------------
+    print("=" * 60)
+    print("TEST 2: Follow-up question (With history)")
+    print("=" * 60)
+    try:
+        fake_history = [
+            {
+                "question": "What are the top 5 product categories by total sales?",
+                "sql": "SELECT product_category, SUM(sales_amount) AS total_sales FROM orders GROUP BY product_category ORDER BY total_sales DESC LIMIT 5;"
+            }
+        ]
+        question_2 = "Now filter that for only 2024"
+        sql_2 = generate_SQL_query(test_schema, question_2, conversation_history=fake_history)
+        print(f"Question: {question_2}")
+        print(f"SQL Output:\n{sql_2}\n")
+    except Exception as e:
+        print(f"Error: {e}\n")
+
+    # ---------------------------------------------------
+    # Test 3: Completely NEW topic (should ignore history)
+    # ---------------------------------------------------
+    print("=" * 60)
+    print("TEST 3: New topic (Should ignore history)")
+    print("=" * 60)
+    try:
+        question_3 = "How many orders were placed from each city?"
+        sql_3 = generate_SQL_query(test_schema, question_3, conversation_history=fake_history)
+        print(f"Question: {question_3}")
+        print(f"SQL Output:\n{sql_3}\n")
+    except Exception as e:
+        print(f"Error: {e}\n")
+
     
 

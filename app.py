@@ -191,9 +191,9 @@ if uploaded_files:
     # sample values, and detected relationships formatted specifically for LLM prompt context
     schema_context = generate_schema_context(st.session_state["datasets"])
 
-    # Kept commented out for future use: Enable this expander to inspect the raw AI-readable schema prompt
-    # with st.expander("Show AI-Readable Schema Context (for LLM)"):
-    #     st.code(schema_context, language="text")
+    # Display the AI-readable schema context formatted for the LLM
+    with st.expander("Show AI-Readable Schema Context (for LLM)"):
+        st.code(schema_context, language="text")
 
     # Load all uploaded and cleaned datasets into SQLite database tables
     # This enables real SQL queries to be executed directly against in-memory tables
@@ -201,12 +201,12 @@ if uploaded_files:
 
 
     # --------------------------------------------------------------------------
-    # STEP 3: Multi-Table Schema Metadata Generation
+    # STEP 3: Multi-Table Schema Metadata Generation [UI Hidden]
     # --------------------------------------------------------------------------
     # Inspects data types, null percentages, cardinality, and primary key candidates across tables
     schema_table_dictionary = generate_multiple_schemas(st.session_state["datasets"])
     
-    # Kept commented out for future use: Enable this to display the metadata schema JSON on the Streamlit page
+    # Kept commented out: runs in backend, available for future UI debugging if needed
     # schema_JSON = schema_to_Json(schema_table_dictionary)
     # with st.expander("Show all the metadata schemas in JSON format"):
     #     st.json(schema_JSON)
@@ -214,8 +214,8 @@ if uploaded_files:
     # --------------------------------------------------------------------------
     # STEP 4: Table Relationship Detection (Foreign Key -> Primary Key) [UI Hidden]
     # --------------------------------------------------------------------------
-    # Note: Relationship detection is executed in the backend (inside schema_context.py),
-    # but this UI visualization block is preserved here so it can easily be re-enabled in the future.
+    # Note: Table relationship detection runs automatically in the backend inside schema_context.py.
+    # Kept commented out here for future UI display if needed.
     #
     # table_relationships = detect_table_releationship(st.session_state["datasets"])        
     # with st.expander("Show detected table relationships"):
