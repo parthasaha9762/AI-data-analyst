@@ -1,7 +1,15 @@
 """
-Chart Selector Module - Starter Skeleton
----------------------------------------
-Follow along step-by-step to implement the AI-powered Chart Selector!
+Chart Selector Module
+---------------------
+This module handles intelligent, automated data visualization for the AI Data Analyst application.
+It analyzes the user's analytical question alongside the structure and metadata of the SQL query 
+results, leveraging Google Gemini to determine the most effective chart type (such as Bar, Line, 
+Pie, Scatter, Histogram, or Table) and axis configurations.
+
+Key Capabilities:
+1. DataFrame Context Formatting: Extracts column schemas, data types, cardinality, and sample rows from query results.
+2. AI-Powered Recommendation: Uses Gemini LLM to choose optimal chart types, axis mappings (X, Y, Color), executive titles, visual reasoning, and key takeaways.
+3. Interactive Plotly Rendering: Generates publication-ready, interactive Plotly visualizations with styled themes, custom color palettes, formatted tooltips, and data labels.
 """
 
 import re
