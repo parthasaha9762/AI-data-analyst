@@ -1,39 +1,80 @@
+"""
+AI Data Analyst - Main Streamlit Application
+=============================================
+This is the core entry-point and UI orchestration layer for the AI Data Analyst application.
+It integrates all backend and AI modules to provide a seamless, end-to-end conversational
+data analysis experience.
+
+Key Application Workflow:
+1. Multi-CSV Ingestion & Storage:
+   - Allows users to upload one or multiple CSV files.
+   - Stores raw datasets in Streamlit's session state.
+2. Automated Data Quality & Cleaning:
+   - Identifies and auto-cleans missing values (numeric -> 0, text -> 'N/A').
+   - Detects and eliminates duplicate rows.
+   - Generates summary statistics, table dimensions, and sample previews.
+3. In-Memory Database & Schema Management:
+   - Loads cleaned DataFrames into an in-memory SQLite database via DatabaseManager.
+   - Extracts schema metadata, data types, and primary/foreign key relationships.
+   - Compiles a unified schema context formatted specifically for LLMs.
+4. Two-Tier Query Validation:
+   - Tier 1: Instant heuristic checks to filter empty, trivial, or gibberish input.
+   - Tier 2: Semantic validation during SQL generation to catch non-analytical prompts.
+5. AI SQL Generation & Plain-English Explanation:
+   - Converts natural language business questions into precise, executable SQLite queries.
+   - Generates clear, step-by-step business explanations of how the SQL query works.
+   - Provides an interactive SQL Workbench for manual edits and immediate re-execution.
+6. Intelligent Data Visualization (Plotly):
+   - User-controlled visualization trigger (opt-in rendering).
+   - AI-powered chart recommendation (Chart type, X/Y axes, color grouping, title).
+   - Interactive Plotly figures with high-impact executive conclusion takeaways.
+7. Executive Business Insights & Growth Actions (AI Pro):
+   - Synthesizes statistical context, query results, and business context.
+   - Delivers actionable strategic recommendations and risk/opportunity analyses.
+"""
+
 import streamlit as st
 import pandas as pd
 
-# Import custom helper functions for schema metadata generation and relationship detection
+# ------------------------------------------------------------------------------
+# Module Imports & Component Overview
+# ------------------------------------------------------------------------------
+
+# Schema metadata generators and relationship detectors for multi-table understanding
 from modules.schema_metadata_generator import generate_table_schema, schema_to_Json, generate_multiple_schemas
 from modules.releationship_detector import detect_table_releationship
 
-# Import database manager from module
+# DatabaseManager: Manages in-memory SQLite database creation, table ingestion, and query execution
 from modules.database_manager import DatabaseManager
 
-# Import schema context generator from module
+# Schema Context: Formats database tables, columns, and relationships into LLM-ready prompt text
 from modules.schema_context import generate_schema_context
 
-# Import SQL generator from module
+# SQL Generator: Uses Google Gemini to translate natural language questions into SQLite queries
 from modules.sql_generator import generate_SQL_query
 
-# Import SQL explainer from sql_explainer module
+# SQL Explainer: Breaks down SQL queries into clear, educational, non-technical explanations
 from modules.sql_explainer import explain_SQL_query
 
-# Import Chart Selector module for automatic chart recommendations & rendering
+# Chart Selector: Recommends optimal chart configurations and renders interactive Plotly figures
 from modules.chart_selector import generate_plotly_chart, recommend_chart_config
 
-# Import Query Validator module for detecting gibberish & non-analytic prompts
+# Query Validator: Validates prompts to filter out greetings, gibberish, or non-analytical queries
 from modules.query_validator import is_meaningful_query
 
-# Import Insight Generator module for generating business insights
+# Insight Generator: Produces executive business insights and strategic growth recommendations
 from modules.insight_generator import generate_business_insights
 
 
-# Set main application title
+# Set main application page title in Streamlit UI
 st.title("AI Data Analyst")
 
 
 # ------------------------------------------------------------------------------
-# STEP 1: File Upload & Session State Storage
+# STEP 1: File Upload & Session State Initialization
 # ------------------------------------------------------------------------------
+# We initialize session state variables to ensure that uploaded data, database connections,
+# and query states persist across Streamlit reruns without requiring re-uploading.
 
 # Allow users to upload one or multiple CSV files simultaneously
 uploaded_files = st.file_uploader(
@@ -47,6 +88,7 @@ if "datasets" not in st.session_state:
     st.session_state["datasets"] = {}
 
 # Initialize DatabaseManager in session state if not present
+# This maintains a single active SQLite database connection throughout the user's session
 if "db_manager" not in st.session_state:
     st.session_state["db_manager"] = DatabaseManager()
 
@@ -58,52 +100,54 @@ if "db_manager" not in st.session_state:
 if uploaded_files:
     st.write("Uploaded files...")
     for file in uploaded_files:
-        # Reset the buffer cursor to the beginning before reading
+        # Reset the file buffer cursor to byte 0 before reading to avoid empty reads on reruns
         file.seek(0)
         
         # Read the CSV file into a Pandas DataFrame
         df = pd.read_csv(file)
     
         # Extract the table name from the file name (e.g., "orders.csv" -> "orders")
+        # This table name will serve as the SQL table identifier in SQLite
         table_name = file.name.rsplit(".", 1)[0]
 
-        # Store the DataFrame in session state so other modules can access it
+        # Store the raw DataFrame in session state so other modules can access it
         st.session_state["datasets"][table_name] = df
 
-        # Display the file name and created table name
+        # Display confirmation of file name and assigned table name to the user
         st.write(f"✅ **File:** `{file.name}` ➔ **Table Name:** `{table_name}`")
 
-        # --- Data Quality Checks & Summary ---
+        # --- Data Quality Checks & Automated Data Cleaning ---
         
         # 1. Missing Values Check & Auto-Cleaning
+        # Null values can cause SQL aggregation discrepancies and plotting errors;
+        # we detect missing values and apply safe default imputations.
         missing_values = df.isnull().sum()
         with st.expander("Show missing values"):           
             if missing_values.sum() > 0:
                 st.write(missing_values[missing_values > 0])
 
-                # Impute missing numeric values with 0, text values with "N/A"
+                # Impute missing numeric values with 0, text/categorical values with "N/A"
                 for col in df.columns:
                     if "int" in str(df[col].dtype).lower() or "float" in str(df[col].dtype).lower():
                         df[col] = df[col].fillna(0)
                     else:
                         df[col] = df[col].fillna("N/A")
 
-                # Update session state storage with cleaned DataFrame
+                # Update session state storage with the cleaned DataFrame
                 st.session_state["datasets"][table_name] = df
                 st.success("Missing values have been auto-cleaned! (Numeric ➔ 0, Text ➔ 'N/A') 🎉")
             else:
                 st.write("No missing values found! 🎉")
 
         # 2. Duplicate Records Check & Auto-Cleaning
+        # Duplicate rows inflate totals and distort analytics; we detect and remove exact matches.
         num_duplicates = df.duplicated().sum()
         with st.expander("Show duplicate records"):
             if num_duplicates > 0:
                 st.write(f"❌ Found **{num_duplicates}** duplicate records!")
                 st.dataframe(df[df.duplicated()])
 
-                # Reassign df without duplicates and update session state storage
-
-                # Drops ONLY rows where ID, Name, Email, City, AND Date are ALL 100% identical (based on previous upload)
+                # Drops ONLY rows where all columns are 100% identical, then resets the integer index
                 df = df.drop_duplicates().reset_index(drop=True)
                 st.session_state["datasets"][table_name] = df 
                 st.success("Duplicate records have been cleared!")
@@ -111,16 +155,18 @@ if uploaded_files:
                 st.write("No duplicate records found! 🎉")
 
 
-        # 3. Descriptive Summary Statistics (Mean, Min, Max, Quantiles for numeric columns)
+        # 3. Descriptive Summary Statistics
+        # Computes count, mean, std, min, 25%, 50%, 75%, max for numeric columns for quick exploration
         with st.expander("Show statistics"):
             st.write(df.describe())
 
-        # 4. Table Dimensions (Row count and Column count)
+        # 4. Table Dimensions
+        # Informs the user of total row and column counts
         st.write(f"No: of rows: {len(df)}  \nNo: of columns: {len(df.columns)}")
 
         # 5. Data Preview & Simplified Data Types
+        # Provides an initial 10-row glimpse with user-friendly 1-based indexing
         with st.expander("Show sample rows of the table"):
-            # Display the first 10 rows with 1-based indexing for cleaner presentation
             sample_dataframe = df.head(10).copy()
             sample_dataframe.index = range(1, len(sample_dataframe) + 1)
             st.dataframe(sample_dataframe)
@@ -139,38 +185,37 @@ if uploaded_files:
                 st.write(clean_dtypes)
 
     # --------------------------------------------------------------------------
-    # STEP 2.5: AI-Readable Database Schema Context Generation [UI Hidden]
+    # STEP 2.5: AI-Readable Database Schema Context Generation
     # --------------------------------------------------------------------------
-
     # Generate a clean, structured text representation of all tables, columns,
-    # and detected relationships formatted specifically for LLM prompt context
+    # sample values, and detected relationships formatted specifically for LLM prompt context
     schema_context = generate_schema_context(st.session_state["datasets"])
 
-    # Note: Commented out from UI display, but runs in backend for LLM context
+    # Kept commented out for future use: Enable this expander to inspect the raw AI-readable schema prompt
     # with st.expander("Show AI-Readable Schema Context (for LLM)"):
     #     st.code(schema_context, language="text")
 
-
     # Load all uploaded and cleaned datasets into SQLite database tables
+    # This enables real SQL queries to be executed directly against in-memory tables
     st.session_state["db_manager"].load_datasets(st.session_state["datasets"])
-
-
 
 
     # --------------------------------------------------------------------------
     # STEP 3: Multi-Table Schema Metadata Generation
     # --------------------------------------------------------------------------
-
-    # Generate schema metadata (data types, null counts, PK candidates) for all uploaded tables
+    # Inspects data types, null percentages, cardinality, and primary key candidates across tables
     schema_table_dictionary = generate_multiple_schemas(st.session_state["datasets"])
     
-    # Commented out from UI display, but runs in backend
+    # Kept commented out for future use: Enable this to display the metadata schema JSON on the Streamlit page
+    # schema_JSON = schema_to_Json(schema_table_dictionary)
     # with st.expander("Show all the metadata schemas in JSON format"):
-    #     st.json(schema_JSON)   
+    #     st.json(schema_JSON)
+
     # --------------------------------------------------------------------------
     # STEP 4: Table Relationship Detection (Foreign Key -> Primary Key) [UI Hidden]
     # --------------------------------------------------------------------------
-    # Note: Commented out from UI display, but runs automatically in backend (schema_context.py)
+    # Note: Relationship detection is executed in the backend (inside schema_context.py),
+    # but this UI visualization block is preserved here so it can easily be re-enabled in the future.
     #
     # table_relationships = detect_table_releationship(st.session_state["datasets"])        
     # with st.expander("Show detected table relationships"):
@@ -190,13 +235,13 @@ if uploaded_files:
     #         st.dataframe(rel_df, use_container_width=True, hide_index=True)
     #     else:
     #         st.write("No table relationships detected ❌")
-
+    
 
 # ------------------------------------------------------------------------------
 # STEP 5: Natural Language Query Interface (Sticky Bottom Chatbot Bar)
 # ------------------------------------------------------------------------------
 
-# Custom CSS styling for the sticky bottom chat bar
+# Inject custom CSS to give the bottom chat input a floating, modern shadow and rounded border
 st.markdown("""
 <style>
 div[data-testid="stChatInput"] {
@@ -206,58 +251,64 @@ div[data-testid="stChatInput"] {
 </style>
 """, unsafe_allow_html=True)
 
-# Fixed Chat Input anchored to the bottom of the viewport throughout scrolling
+# Fixed Chat Input anchored to the bottom of the viewport for easy conversational queries
 user_prompt = st.chat_input("💬 Ask any question about your data (e.g., 'What are the top 5 sales by category?')...")
 
-# Handle query submission logic from fixed chat bar
+# Handle natural language query submission logic
 if user_prompt:
+    # Validation check: Ensure the user has uploaded datasets before querying
     if not st.session_state.get("datasets"):
         st.warning("⚠️ Please upload at least one CSV file first before analyzing!")
     elif user_prompt.strip():
         question = user_prompt.strip()
 
-        # 0. Tier 1: Fast Heuristic Validation (0ms response)
+        # --- Tier 1 Validation: Fast Heuristic Validation (0ms latency, zero API cost) ---
+        # Filters out single characters, random strings, greetings, and empty questions
         is_valid, warning_msg = is_meaningful_query(question)
         if not is_valid:
             st.warning(f"⚠️ {warning_msg}")
         else:
+            # Display an immediate toast notification that analysis has commenced
             st.toast(f"🔍 Analyzing: \"{question}\"", icon="🤖")
 
-            # 1. Fetch current schema context
+            # 1. Fetch current schema context representing the uploaded datasets
             schema_context = generate_schema_context(st.session_state["datasets"])
 
             try:
-                # 2. Call LLM to generate SQL query (Spinner #1 stops as soon as SQL is ready)
+                # 2. Call LLM to translate natural language question into an SQL query
+                # Spinner #1 runs specifically for SQL generation
                 with st.spinner("🤖 AI is generating SQL query..."):
                     generated_sql = generate_SQL_query(schema_context, question)
 
-                # Tier 2: Check if LLM flagged prompt as non-analytical / gibberish
+                # --- Tier 2 Validation: LLM Semantic Verification ---
+                # Check if the LLM flagged the prompt as non-analytical or unrelated to the schema
                 if generated_sql.strip() == "INVALID_QUERY":
                     st.error("⚠️ Your question doesn't appear to be related to your uploaded dataset or data analysis. Please ask a specific question about your data (e.g., 'What are the top 5 sales by category?').")
                 else:
-                    # 3. Execute generated SQL on SQLite Database Manager
+                    # 3. Execute the generated SQL query on the SQLite database engine
                     result_df = st.session_state["db_manager"].execute_query(generated_sql)
 
                     # Trigger animated toast notification immediately after SQL generation!
                     st.toast("✅ SQL Query generated successfully! Generating explanation now...", icon="🚀")
 
-                    # 4. Generate Explanation (Spinner #2 starts only for explanation)
+                    # 4. Generate plain-English explanation for the generated SQL query
+                    # Spinner #2 runs specifically for explanation generation
                     with st.spinner("💡 AI is generating explanation..."):
                         sql_explanation = explain_SQL_query(schema_context, question, generated_sql)
 
-                    # Clear prior cached chart config and reset chart display choice and insights for fresh query
+                    # Clear prior cached chart config, insights, and chart display toggle for fresh query
                     st.session_state.pop("active_chart_config", None)
                     st.session_state.pop("active_insights", None)
                     st.session_state["show_chart"] = None
 
-                    # Store query state in session state for persistence and interactive editing
+                    # Store current active query state in session state for persistence and interactive editing
                     st.session_state["active_question"] = question
                     st.session_state["active_sql"] = generated_sql
                     st.session_state["active_df"] = result_df
                     st.session_state["active_explanation"] = sql_explanation
                     st.session_state["edited_sql_input"] = generated_sql
 
-                    # Append to query history for tracking
+                    # Track question in history for auditing and user context
                     if "query_history" not in st.session_state:
                         st.session_state["query_history"] = []
                     st.session_state["query_history"].append(question)
@@ -265,7 +316,9 @@ if user_prompt:
             except Exception as e:
                 st.error(f"❌ Failed to generate or run query: {e}")
 
-# Render AI Query Results and Interactive SQL Workbench
+# ------------------------------------------------------------------------------
+# Render Active Query Results, SQL Workbench, and Explanations
+# ------------------------------------------------------------------------------
 if "active_sql" in st.session_state:
     st.markdown("---")
     st.info(f"💬 **Current Question:** *\"{st.session_state.get('active_question', '')}\"*", icon="💡")
@@ -273,7 +326,7 @@ if "active_sql" in st.session_state:
     st.subheader("Generated SQL Query")
     st.code(st.session_state["active_sql"], language="sql")
 
-    # Interactive SQL Workbench: Allow users to modify and re-execute the SQL query
+    # Interactive SQL Workbench: Allows users to inspect, modify, and re-run SQL queries directly
     with st.expander("✏️ Edit & Re-run SQL(Optional)"):
         edited_sql = st.text_area(
             "Modify SQL Query:",
@@ -284,11 +337,12 @@ if "active_sql" in st.session_state:
         if st.button("⚡ Run Modified SQL"):
             if edited_sql.strip():
                 try:
+                    # Execute modified SQL query on SQLite
                     new_df = st.session_state["db_manager"].execute_query(edited_sql)
                     st.session_state["active_sql"] = edited_sql
                     st.session_state["active_df"] = new_df
 
-                    # Clear old chart, insights and reset chart state so new modified SQL gets a fresh choice
+                    # Clear old chart and insights so the newly modified SQL gets fresh visualizations and insights
                     st.session_state.pop("active_chart_config", None)
                     st.session_state.pop("active_insights", None)
                     st.session_state["show_chart"] = None
@@ -300,16 +354,21 @@ if "active_sql" in st.session_state:
             else:
                 st.warning("Please enter a valid SQL query.")
 
+    # Display Tabular Query Results
     st.subheader("Query Results")
     if st.session_state.get("active_df") is not None:
         st.dataframe(st.session_state["active_df"], use_container_width=True, hide_index=True)
         st.success("Query executed successfully! 🎉")
+        
+        # Display plain-English explanation breakdown
         st.subheader("Explanation behind this query")
         st.markdown(st.session_state["active_explanation"])
 
     # --------------------------------------------------------------------------
     # STEP 6: User-Controlled AI Visualization Chart Section
     # --------------------------------------------------------------------------
+    # Gives the user control over whether to generate visual charts, avoiding unnecessary
+    # chart generation API calls when a tabular view is sufficient.
     active_df = st.session_state.get("active_df")
     active_question = st.session_state.get("active_question", "")
 
@@ -330,11 +389,11 @@ if "active_sql" in st.session_state:
                     st.session_state["show_chart"] = False
                     st.rerun()
 
-        # Case 2: User chose to generate and view the AI chart
+        # Case 2: User opted to generate and view the AI visualization chart
         elif show_chart is True:
             st.subheader("📊 AI Generated Visualization Chart")
 
-            # Fetch or generate chart that AI has selected
+            # Fetch or generate chart configuration recommended by Gemini LLM
             if "active_chart_config" not in st.session_state:
                 with st.spinner("🤖 AI is analyzing query and generating chart based on your question..."):
                     try:
@@ -345,20 +404,22 @@ if "active_sql" in st.session_state:
 
             chart_config = st.session_state.get("active_chart_config")
             if chart_config:
+                # Render the Plotly figure from chart configuration dictionary
                 figure = generate_plotly_chart(active_df, chart_config)
                 if figure is not None:
                     st.plotly_chart(figure, use_container_width=True)
 
-                    # Single-Line Executive Chart Conclusion
+                    # Single-Line Executive Chart Takeaway / Conclusion
                     if "conclusion" in chart_config and chart_config["conclusion"]:
+                        # Escape dollar signs ($) so Streamlit doesn't parse currency as LaTeX math syntax
                         clean_conclusion = chart_config["conclusion"].replace("$", r"\$")
                         st.write(f"**THE CONCLUSION:** {clean_conclusion}\n\n")
 
-                    # Show AI reasoning for chart generation
+                    # Display the AI's plain-English reasoning for why this chart type was selected
                     if "reasoning" in chart_config:
                         st.info(f"💡 **AI Reasoning:** {chart_config['reasoning']}")
 
-                    # Option to hide/collapse the visualization chart
+                    # Provide an option to collapse/hide the visualization chart
                     if st.button("🙈 Hide Visualization Chart", key="hide_chart_btn"):
                         st.session_state["show_chart"] = False
                         st.rerun()
@@ -367,7 +428,7 @@ if "active_sql" in st.session_state:
             else:
                 st.info("ℹ️ Visualization could not be generated for this query.")
 
-        # Case 3: User chose not to see the visualization
+        # Case 3: User initially chose not to see the visualization; provide an option to reconsider
         elif show_chart is False:
             st.caption("ℹ️ Visualization skipped. You are viewing the tabular results above.")
             if st.button("📊 Generate Visualization Chart Now", key="gen_chart_later_btn"):
@@ -375,19 +436,23 @@ if "active_sql" in st.session_state:
                 st.rerun()
 
     # --------------------------------------------------------------------------
-    # STEP 7: Executive Business Insights & Growth Actions
+    # STEP 7: Executive Business Insights & Growth Actions (Gemini Pro)
     # --------------------------------------------------------------------------
+    # Formulates high-level strategic insights, performance metrics, and growth recommendations
+    # based on statistical context, SQL query logic, and user question intent.
     if active_df is not None and not active_df.empty:
         st.markdown("---")
         st.subheader("💡 Executive Business Insights & Growth Actions")
 
         # Check if insights are already generated in session state
         if "active_insights" not in st.session_state or st.session_state["active_insights"] is None:
+            # On-demand button trigger avoids automatic API token usage until the user requests insights
             if st.button("💡 Generate AI-Powered Business Insights (AI Pro)", type="primary", use_container_width=True):
                 with st.spinner("🤖 AI Pro is analyzing trends and formulating key takeaways..."):
                     chart_config = st.session_state.get("active_chart_config")
                     current_sql = st.session_state.get("active_sql")
                     
+                    # Generate deep business insights using Gemini Pro model
                     insights = generate_business_insights(
                         user_question=active_question,
                         df=active_df,
@@ -398,7 +463,7 @@ if "active_sql" in st.session_state:
                     st.rerun()
 
         else:
-            # Display generated insights inside a clean container
+            # Display generated markdown insights inside a styled container
             with st.container():
                 st.markdown(st.session_state["active_insights"])
 
@@ -406,6 +471,3 @@ if "active_sql" in st.session_state:
             if st.button("🔄 Refresh Business Insights", key="refresh_insights_btn"):
                 st.session_state.pop("active_insights", None)
                 st.rerun()
-
-                
-        
