@@ -92,6 +92,10 @@ if "datasets" not in st.session_state:
 if "db_manager" not in st.session_state:
     st.session_state["db_manager"] = DatabaseManager()
 
+# Initialize conversational memory buffer to support multi-turn follow-up questions
+# Stores the last few question/SQL pairs so the LLM can understand follow-up context
+if "conversation_history" not in st.session_state:
+    st.session_state["conversation_history"] = []
 
 # ------------------------------------------------------------------------------
 # STEP 2: Process & Inspect Uploaded CSV Files
@@ -251,6 +255,10 @@ div[data-testid="stChatInput"] {
 </style>
 """, unsafe_allow_html=True)
 
+# Count how many previous questions are currently stored in memory
+turn_count = len(st.session_state.get("conversation_history", []))
+
+
 # Fixed Chat Input anchored to the bottom of the viewport for easy conversational queries
 user_prompt = st.chat_input("💬 Ask any question about your data (e.g., 'What are the top 5 sales by category?')...")
 
@@ -278,7 +286,11 @@ if user_prompt:
                 # 2. Call LLM to translate natural language question into an SQL query
                 # Spinner #1 runs specifically for SQL generation
                 with st.spinner("🤖 AI is generating SQL query..."):
-                    generated_sql = generate_SQL_query(schema_context, question)
+                    generated_sql, is_follow_up = generate_SQL_query(
+                        schema_context=schema_context, 
+                        user_question=question, 
+                        conversation_history=st.session_state.get("conversation_history", [])
+                    )
 
                 # --- Tier 2 Validation: LLM Semantic Verification ---
                 # Check if the LLM flagged the prompt as non-analytical or unrelated to the schema
@@ -311,7 +323,23 @@ if user_prompt:
                     # Track question in history for auditing and user context
                     if "query_history" not in st.session_state:
                         st.session_state["query_history"] = []
+
                     st.session_state["query_history"].append(question)
+
+                    # --- Automatic Conversational Memory Management with Topic Shift Detection ---
+                    if is_follow_up:
+                        # Follow-up detected -> append to existing conversation thread
+                        st.session_state["conversation_history"].append({
+                            "question": question,
+                            "sql": generated_sql
+                        })
+                    else:
+                        # NEW TOPIC detected -> automatically reset memory and start fresh thread as Turn 1
+                        st.session_state["conversation_history"] = [{
+                            "question": question,
+                            "sql": generated_sql
+                        }]
+  
 
             except Exception as e:
                 st.error(f"❌ Failed to generate or run query: {e}")
@@ -321,7 +349,14 @@ if user_prompt:
 # ------------------------------------------------------------------------------
 if "active_sql" in st.session_state:
     st.markdown("---")
-    st.info(f"💬 **Current Question:** *\"{st.session_state.get('active_question', '')}\"*", icon="💡")
+    turn_count = len(st.session_state.get("conversation_history", []))
+    if turn_count > 0:
+        col_q, col_btn = st.columns([4, 1])
+        with col_q:
+            st.info(f"💬 **Current Question:** *\"{st.session_state.get('active_question', '')}\"* &nbsp; `🧠 Memory: {turn_count} prior turn{'s' if turn_count > 1 else ''}`", icon="💡")
+    else:
+        st.info(f"💬 **Current Question:** *\"{st.session_state.get('active_question', '')}\"*", icon="💡")
+
     st.success("SQL Query generated successfully! 🪄✨", icon="✅")
     st.subheader("Generated SQL Query")
     st.code(st.session_state["active_sql"], language="sql")
