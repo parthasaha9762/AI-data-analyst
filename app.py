@@ -566,9 +566,9 @@ if "active_sql" in st.session_state:
                         use_container_width=True
                     )
 
-                st.caption(f"Saved as: {filename} • 6 widescreen slides • Ready for board meetings and stakeholder updates")
+                st.caption(f"Saved as: {filename} • Executive widescreen slide deck • Ready for board meetings and stakeholder briefings")
 
         except Exception as e:
-            st.error(f"Sorry! Could not able to download presentation. Please try again.")
+            st.error("Sorry! Could not generate presentation deck. Please try again.")
 
         
