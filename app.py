@@ -65,6 +65,9 @@ from modules.query_validator import is_meaningful_query
 # Insight Generator: Produces executive business insights and strategic growth recommendations
 from modules.insight_generator import generate_business_insights
 
+# Presentation Generator: Generates 16:9 executive PowerPoint decks (.pptx)
+from modules.presentation_generator import create_powerpoint_deck
+
 
 # Set main application page title in Streamlit UI
 st.title("AI Data Analyst")
@@ -311,6 +314,7 @@ if user_prompt:
                     # Clear prior cached chart config, insights, and chart display toggle for fresh query
                     st.session_state.pop("active_chart_config", None)
                     st.session_state.pop("active_insights", None)
+                    st.session_state.pop("active_figure", None)
                     st.session_state["show_chart"] = None
 
                     # Store current active query state in session state for persistence and interactive editing
@@ -441,6 +445,10 @@ if "active_sql" in st.session_state:
             if chart_config:
                 # Render the Plotly figure from chart configuration dictionary
                 figure = generate_plotly_chart(active_df, chart_config)
+
+                # Store generated chart figure for download functionality
+                st.session_state["active_figure"] = figure
+
                 if figure is not None:
                     st.plotly_chart(figure, use_container_width=True)
 
@@ -506,3 +514,61 @@ if "active_sql" in st.session_state:
             if st.button("🔄 Refresh Business Insights", key="refresh_insights_btn"):
                 st.session_state.pop("active_insights", None)
                 st.rerun()
+
+
+    # --------------------------------------------------------------------------
+    # STEP 8: Executive PowerPoint Presentation Export (.pptx)
+    # --------------------------------------------------------------------------
+    # Generate a boardroom-ready, executive 16:9 widescreen PowerPoint presentation.
+    
+    if active_df is not None and not active_df.empty:
+        st.markdown("---")
+        st.subheader("Export and share analysis")
+        st.caption("Generate an executive-ready 16:9 PowerPoint slide deck summarizing this analysis, visual chart, and strategic insights.")
+
+        # Gather current analysis artifacts
+        current_question = st.session_state.get("active_question", "Data Analysis briefing")
+        current_sql = st.session_state.get("active_sql","")
+        current_explanation = st.session_state.get("active_explanation","")
+        current_chart_config = st.session_state.get("active_chart_config")
+        current_fig = st.session_state.get("active_figure")
+        current_insights = st.session_state.get("active_insights", "")
+        dataset_names = list(st.session_state.get("datasets", {}).keys())
+        
+
+        # Compile presentation in memory
+        try:
+            pptx_bytes = create_powerpoint_deck(
+                user_question=current_question,
+                df=active_df,
+                generated_sql=current_sql,
+                sql_explanation=current_explanation,
+                chart_figure=current_fig,
+                chart_config=current_chart_config,
+                business_insights=current_insights,
+                dataset_names=dataset_names
+            )
+
+            # Generate clean filename
+            filename = f"Analysis Deck.pptx"
+
+            # Display download button in download-themed container
+            if pptx_bytes:
+
+                col_btn, _ = st.columns([2,3])
+                with col_btn:
+                    st.download_button(
+                        label="📥 Download Presentation (PPTX) file",
+                        data=pptx_bytes,
+                        file_name=filename,
+                        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                        type="primary",
+                        use_container_width=True
+                    )
+
+                st.caption(f"Saved as: {filename} • 6 widescreen slides • Ready for board meetings and stakeholder updates")
+
+        except Exception as e:
+            st.error(f"Sorry! Could not able to download presentation. Please try again.")
+
+        
