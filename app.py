@@ -174,9 +174,6 @@ if uploaded_files:
         # 5. Data Preview & Simplified Data Types
         # Provides an initial 10-row glimpse with user-friendly 1-based indexing
         with st.expander("Show sample rows of the table"):
-            sample_dataframe = df.head(10).copy()
-            sample_dataframe.index = range(1, len(sample_dataframe) + 1)
-            st.dataframe(sample_dataframe)
 
             # Display simplified, human-readable data types (int, float, boolean, object)
             with st.expander("Show data types"):
@@ -191,6 +188,12 @@ if uploaded_files:
                 )
                 st.write(clean_dtypes)
 
+            # Show first 10 rows of the uploaded CSV file
+            sample_dataframe = df.head(10).copy()
+            sample_dataframe.index = range(1, len(sample_dataframe) + 1)
+            st.dataframe(sample_dataframe)
+
+            
     # --------------------------------------------------------------------------
     # STEP 2.5: AI-Readable Database Schema Context Generation
     # --------------------------------------------------------------------------
