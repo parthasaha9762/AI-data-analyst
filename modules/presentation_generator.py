@@ -233,18 +233,25 @@ def create_powerpoint_deck(
     prs.slide_height = Inches(7.5)
     blank_layout = prs.slide_layouts[6]
 
-    # Pre-parse insights to determine optimal slide allocation
-    sections = parse_markdown_sections(business_insights)
-    total_insight_chars = sum(len(s.get("content", "")) for s in sections)
-    
-    # If insights are extensive (> 550 chars or > 3 sections), use 2 dedicated insight slides
-    use_two_insight_slides = total_insight_chars > 550 or len(sections) > 3
+    # Determine available components
+    has_chart = chart_figure is not None
+    has_insights = bool(business_insights and business_insights.strip())
+    has_table = df is not None and not df.empty
 
-    base_slide_count = 5 if use_two_insight_slides else 4
-    if df is not None and not df.empty:
-        total_slides = base_slide_count + 2  # Includes SQL audit slide + Data evidence table
-    else:
-        total_slides = base_slide_count + 1
+    # Pre-parse insights to determine optimal slide allocation if insights are present
+    sections = parse_markdown_sections(business_insights) if has_insights else []
+    total_insight_chars = sum(len(s.get("content", "")) for s in sections)
+    use_two_insight_slides = has_insights and (total_insight_chars > 550 or len(sections) > 3)
+
+    # Compute dynamic slide count
+    total_slides = 2  # Slide 1 (Cover) + Slide 2 (Executive Scorecard)
+    if has_chart:
+        total_slides += 1
+    if has_insights:
+        total_slides += (2 if use_two_insight_slides else 1)
+    total_slides += 1  # Data Governance & SQL Audit Trail
+    if has_table:
+        total_slides += 1  # Tabular Query Results Ledger
 
     current_slide_idx = 1
 
@@ -439,15 +446,15 @@ def create_powerpoint_deck(
             p_c.space_before = Pt(8)
 
     # ==========================================================================
-    # SLIDE 3: Visual Analytics & Chart Deep-Dive (Clean Split View)
+    # SLIDE 3 (Optional): Visual Analytics & Chart Deep-Dive
     # ==========================================================================
-    current_slide_idx += 1
-    slide3 = prs.slides.add_slide(blank_layout)
-    _add_slide_header(slide3, "Visual Intelligence", "Data Visualization & Key Trends", "Visual breakdown recommended by AI chart selector")
-    _add_footer(slide3, current_slide_idx, total_slides)
+    if has_chart:
+        current_slide_idx += 1
+        slide3 = prs.slides.add_slide(blank_layout)
+        _add_slide_header(slide3, "Visual Intelligence", "Data Visualization & Key Trends", "Visual breakdown recommended by AI chart selector")
+        _add_footer(slide3, current_slide_idx, total_slides)
 
-    chart_rendered = False
-    if chart_figure is not None:
+        chart_rendered = False
         try:
             img_bytes = chart_figure.to_image(format="png", width=1200, height=650, scale=2)
             img_stream = io.BytesIO(img_bytes)
@@ -456,191 +463,192 @@ def create_powerpoint_deck(
         except Exception:
             chart_rendered = False
 
-    if not chart_rendered:
-        fb_box = slide3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(1.35), Inches(7.6), Inches(5.4))
-        fb_box.fill.solid()
-        fb_box.fill.fore_color.rgb = CARD_BG
-        fb_box.line.color.rgb = CARD_BORDER
-        tf_fb = fb_box.text_frame
-        tf_fb.word_wrap = True
-        p = tf_fb.paragraphs[0]
-        p.text = "📊 Visual Intelligence Summary"
-        p.font.size = Pt(18)
+        if not chart_rendered:
+            fb_box = slide3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(1.35), Inches(7.6), Inches(5.4))
+            fb_box.fill.solid()
+            fb_box.fill.fore_color.rgb = CARD_BG
+            fb_box.line.color.rgb = CARD_BORDER
+            tf_fb = fb_box.text_frame
+            tf_fb.word_wrap = True
+            p = tf_fb.paragraphs[0]
+            p.text = "📊 Visual Intelligence Summary"
+            p.font.size = Pt(18)
+            p.font.bold = True
+            p.font.color.rgb = NAVY_PRIMARY
+            p2 = tf_fb.add_paragraph()
+            p2.text = "Visual trend data is summarized in the tabular records and strategic takeaways."
+            p2.font.size = Pt(16)
+            p2.font.color.rgb = TEXT_BODY
+            p2.space_before = Pt(10)
+
+        # Right Column: Unified Narrative Card
+        c_side = slide3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(8.65), Inches(1.35), Inches(3.88), Inches(5.4))
+        c_side.fill.solid()
+        c_side.fill.fore_color.rgb = CARD_BG
+        c_side.line.color.rgb = CARD_BORDER
+
+        acc_side = slide3.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.65), Inches(1.35), Inches(0.08), Inches(5.4))
+        acc_side.fill.solid()
+        acc_side.fill.fore_color.rgb = BLUE_ACCENT
+        acc_side.line.fill.background()
+
+        tf_side = c_side.text_frame
+        tf_side.word_wrap = True
+        tf_side.margin_left = tf_side.margin_right = Inches(0.24)
+        tf_side.margin_top = Inches(0.2)
+
+        p = tf_side.paragraphs[0]
+        p.text = "🔍 KEY VISUAL TAKEAWAY"
+        p.font.size = Pt(13)
         p.font.bold = True
-        p.font.color.rgb = NAVY_PRIMARY
-        p2 = tf_fb.add_paragraph()
-        p2.text = "Visual trend data is summarized in the tabular records and strategic takeaways."
+        p.font.color.rgb = BLUE_ACCENT
+
+        p2 = tf_side.add_paragraph()
+        p2.text = raw_conclusion
         p2.font.size = Pt(16)
-        p2.font.color.rgb = TEXT_BODY
-        p2.space_before = Pt(10)
+        p2.font.bold = True
+        p2.font.color.rgb = NAVY_PRIMARY
+        p2.space_before = Pt(8)
 
-    # Right Column: Unified Narrative Card
-    c_side = slide3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(8.65), Inches(1.35), Inches(3.88), Inches(5.4))
-    c_side.fill.solid()
-    c_side.fill.fore_color.rgb = CARD_BG
-    c_side.line.color.rgb = CARD_BORDER
+        p3 = tf_side.add_paragraph()
+        p3.text = "📐 CHART METHODOLOGY"
+        p3.font.size = Pt(13)
+        p3.font.bold = True
+        p3.font.color.rgb = TEXT_MUTED
+        p3.space_before = Pt(18)
 
-    acc_side = slide3.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(8.65), Inches(1.35), Inches(0.08), Inches(5.4))
-    acc_side.fill.solid()
-    acc_side.fill.fore_color.rgb = BLUE_ACCENT
-    acc_side.line.fill.background()
-
-    tf_side = c_side.text_frame
-    tf_side.word_wrap = True
-    tf_side.margin_left = tf_side.margin_right = Inches(0.24)
-    tf_side.margin_top = Inches(0.2)
-
-    p = tf_side.paragraphs[0]
-    p.text = "🔍 KEY VISUAL TAKEAWAY"
-    p.font.size = Pt(13)
-    p.font.bold = True
-    p.font.color.rgb = BLUE_ACCENT
-
-    p2 = tf_side.add_paragraph()
-    p2.text = raw_conclusion
-    p2.font.size = Pt(16)
-    p2.font.bold = True
-    p2.font.color.rgb = NAVY_PRIMARY
-    p2.space_before = Pt(8)
-
-    p3 = tf_side.add_paragraph()
-    p3.text = "📐 CHART METHODOLOGY"
-    p3.font.size = Pt(13)
-    p3.font.bold = True
-    p3.font.color.rgb = TEXT_MUTED
-    p3.space_before = Pt(18)
-
-    p4 = tf_side.add_paragraph()
-    chart_type = chart_config.get("chart_type", "Standard").upper() if chart_config else "DATA"
-    logic_txt = chart_config.get("reasoning", "Selected for optimal comparison and high visual impact.") if chart_config else "Optimized for comparison."
-    p4.text = f"• Format: {chart_type} Chart\n• Logic: {logic_txt}"
-    p4.font.size = Pt(15)
-    p4.font.color.rgb = TEXT_BODY
-    p4.space_before = Pt(8)
+        p4 = tf_side.add_paragraph()
+        chart_type = chart_config.get("chart_type", "Standard").upper() if chart_config else "DATA"
+        logic_txt = chart_config.get("reasoning", "Selected for optimal comparison and high visual impact.") if chart_config else "Optimized for comparison."
+        p4.text = f"• Format: {chart_type} Chart\n• Logic: {logic_txt}"
+        p4.font.size = Pt(15)
+        p4.font.color.rgb = TEXT_BODY
+        p4.space_before = Pt(8)
 
     # ==========================================================================
-    # SLIDE 4 (+ Optional SLIDE 5): Strategic Business Insights (COMPLETE & UNCLIPPED)
+    # SLIDE 4 (Optional): Strategic Business Insights (COMPLETE & UNCLIPPED)
     # ==========================================================================
-    accents_cycle = [BLUE_ACCENT, AMBER_TAG, EMERALD_TAG, CYAN_ACCENT]
+    if has_insights:
+        accents_cycle = [BLUE_ACCENT, AMBER_TAG, EMERALD_TAG, CYAN_ACCENT]
 
-    if use_two_insight_slides:
-        # ----------------------------------------------------------------------
-        # PART 1: Strategic Findings & Opportunities (2 Spacious Cards)
-        # ----------------------------------------------------------------------
-        current_slide_idx += 1
-        slide_ins1 = prs.slides.add_slide(blank_layout)
-        _add_slide_header(slide_ins1, "Strategic Intelligence", "Executive Findings & Growth Vectors", "Diagnostic findings and commercial growth opportunities formulated by AI")
-        _add_footer(slide_ins1, current_slide_idx, total_slides)
+        if use_two_insight_slides:
+            # ----------------------------------------------------------------------
+            # PART 1: Strategic Findings & Opportunities (2 Spacious Cards)
+            # ----------------------------------------------------------------------
+            current_slide_idx += 1
+            slide_ins1 = prs.slides.add_slide(blank_layout)
+            _add_slide_header(slide_ins1, "Strategic Intelligence", "Executive Findings & Growth Vectors", "Diagnostic findings and commercial growth opportunities formulated by AI")
+            _add_footer(slide_ins1, current_slide_idx, total_slides)
 
-        sec_part1 = sections[:2] if len(sections) >= 2 else sections
-        c_h1 = Inches(2.6)
-        gap1 = Inches(0.22)
-        start_y1 = Inches(1.35)
+            sec_part1 = sections[:2] if len(sections) >= 2 else sections
+            c_h1 = Inches(2.6)
+            gap1 = Inches(0.22)
+            start_y1 = Inches(1.35)
 
-        for idx, sec in enumerate(sec_part1):
-            y_pos = start_y1 + idx * (c_h1 + gap1)
-            card = slide_ins1.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), y_pos, Inches(11.73), c_h1)
-            card.fill.solid()
-            card.fill.fore_color.rgb = CARD_BG
-            card.line.color.rgb = CARD_BORDER
+            for idx, sec in enumerate(sec_part1):
+                y_pos = start_y1 + idx * (c_h1 + gap1)
+                card = slide_ins1.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), y_pos, Inches(11.73), c_h1)
+                card.fill.solid()
+                card.fill.fore_color.rgb = CARD_BG
+                card.line.color.rgb = CARD_BORDER
 
-            acc = slide_ins1.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), y_pos, Inches(0.1), c_h1)
-            acc.fill.solid()
-            acc.fill.fore_color.rgb = accents_cycle[idx % len(accents_cycle)]
-            acc.line.fill.background()
+                acc = slide_ins1.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), y_pos, Inches(0.1), c_h1)
+                acc.fill.solid()
+                acc.fill.fore_color.rgb = accents_cycle[idx % len(accents_cycle)]
+                acc.line.fill.background()
 
-            tf = card.text_frame
-            tf.word_wrap = True
-            tf.margin_left = tf.margin_right = Inches(0.28)
-            tf.margin_top = Inches(0.14)
+                tf = card.text_frame
+                tf.word_wrap = True
+                tf.margin_left = tf.margin_right = Inches(0.28)
+                tf.margin_top = Inches(0.14)
 
-            p_t = tf.paragraphs[0]
-            p_t.text = f"{'💡' if idx==0 else '🚀'} {sec['title'].upper()}"
-            p_t.font.size = Pt(14)
-            p_t.font.bold = True
-            p_t.font.color.rgb = NAVY_PRIMARY
+                p_t = tf.paragraphs[0]
+                p_t.text = f"{'💡' if idx==0 else '🚀'} {sec['title'].upper()}"
+                p_t.font.size = Pt(14)
+                p_t.font.bold = True
+                p_t.font.color.rgb = NAVY_PRIMARY
 
-            add_formatted_markdown_text(tf, sec["content"], default_font_size=Pt(15), default_color=TEXT_BODY)
+                add_formatted_markdown_text(tf, sec["content"], default_font_size=Pt(15), default_color=TEXT_BODY)
 
-        # ----------------------------------------------------------------------
-        # PART 2: Strategic Action Plan & Execution Roadmap (Remaining Sections)
-        # ----------------------------------------------------------------------
-        current_slide_idx += 1
-        slide_ins2 = prs.slides.add_slide(blank_layout)
-        _add_slide_header(slide_ins2, "Action Roadmap", "Strategic Execution & Recommended Next Steps", "Tactical initiatives, quick fixes, and operational milestones")
-        _add_footer(slide_ins2, current_slide_idx, total_slides)
+            # ----------------------------------------------------------------------
+            # PART 2: Strategic Action Plan & Execution Roadmap (Remaining Sections)
+            # ----------------------------------------------------------------------
+            current_slide_idx += 1
+            slide_ins2 = prs.slides.add_slide(blank_layout)
+            _add_slide_header(slide_ins2, "Action Roadmap", "Strategic Execution & Recommended Next Steps", "Tactical initiatives, quick fixes, and operational milestones")
+            _add_footer(slide_ins2, current_slide_idx, total_slides)
 
-        sec_part2 = sections[2:] if len(sections) >= 2 else []
-        c_h2 = Inches(5.4 / max(1, len(sec_part2))) - Inches(0.12) if sec_part2 else Inches(5.4)
-        c_h2 = max(Inches(1.7), min(Inches(5.4), c_h2))
-        gap2 = Inches(0.18)
-        start_y2 = Inches(1.35)
+            sec_part2 = sections[2:] if len(sections) >= 2 else []
+            c_h2 = Inches(5.4 / max(1, len(sec_part2))) - Inches(0.12) if sec_part2 else Inches(5.4)
+            c_h2 = max(Inches(1.7), min(Inches(5.4), c_h2))
+            gap2 = Inches(0.18)
+            start_y2 = Inches(1.35)
 
-        for idx, sec in enumerate(sec_part2):
-            y_pos = start_y2 + idx * (c_h2 + gap2)
-            card = slide_ins2.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), y_pos, Inches(11.73), c_h2)
-            card.fill.solid()
-            card.fill.fore_color.rgb = CARD_BG
-            card.line.color.rgb = CARD_BORDER
+            for idx, sec in enumerate(sec_part2):
+                y_pos = start_y2 + idx * (c_h2 + gap2)
+                card = slide_ins2.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), y_pos, Inches(11.73), c_h2)
+                card.fill.solid()
+                card.fill.fore_color.rgb = CARD_BG
+                card.line.color.rgb = CARD_BORDER
 
-            acc = slide_ins2.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), y_pos, Inches(0.1), c_h2)
-            acc.fill.solid()
-            acc.fill.fore_color.rgb = EMERALD_TAG if idx==0 else BLUE_ACCENT
-            acc.line.fill.background()
+                acc = slide_ins2.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), y_pos, Inches(0.1), c_h2)
+                acc.fill.solid()
+                acc.fill.fore_color.rgb = EMERALD_TAG if idx==0 else BLUE_ACCENT
+                acc.line.fill.background()
 
-            tf = card.text_frame
-            tf.word_wrap = True
-            tf.margin_left = tf.margin_right = Inches(0.28)
-            tf.margin_top = Inches(0.14)
+                tf = card.text_frame
+                tf.word_wrap = True
+                tf.margin_left = tf.margin_right = Inches(0.28)
+                tf.margin_top = Inches(0.14)
 
-            p_t = tf.paragraphs[0]
-            p_t.text = f"🎯 {sec['title'].upper()}"
-            p_t.font.size = Pt(14)
-            p_t.font.bold = True
-            p_t.font.color.rgb = NAVY_PRIMARY
+                p_t = tf.paragraphs[0]
+                p_t.text = f"🎯 {sec['title'].upper()}"
+                p_t.font.size = Pt(14)
+                p_t.font.bold = True
+                p_t.font.color.rgb = NAVY_PRIMARY
 
-            add_formatted_markdown_text(tf, sec["content"], default_font_size=Pt(15), default_color=TEXT_BODY)
+                add_formatted_markdown_text(tf, sec["content"], default_font_size=Pt(15), default_color=TEXT_BODY)
 
-    else:
-        # Standard Single Strategic Advisory Slide (3 Horizontal Cards)
-        current_slide_idx += 1
-        slide4 = prs.slides.add_slide(blank_layout)
-        _add_slide_header(slide4, "Strategic Advisory", "Executive Business Insights & Growth Actions", "Complete strategic advisory report formulated by AI")
-        _add_footer(slide4, current_slide_idx, total_slides)
+        else:
+            # Standard Single Strategic Advisory Slide (3 Horizontal Cards)
+            current_slide_idx += 1
+            slide4 = prs.slides.add_slide(blank_layout)
+            _add_slide_header(slide4, "Strategic Advisory", "Executive Business Insights & Growth Actions", "Complete strategic advisory report formulated by AI")
+            _add_footer(slide4, current_slide_idx, total_slides)
 
-        num_sec = max(1, len(sections))
-        card_w = Inches(11.73)
-        card_h = max(Inches(1.65), Inches(5.4 / num_sec - 0.14))
-        gap_y = Inches(0.16)
-        start_y = Inches(1.35)
+            num_sec = max(1, len(sections))
+            card_w = Inches(11.73)
+            card_h = max(Inches(1.65), Inches(5.4 / num_sec - 0.14))
+            gap_y = Inches(0.16)
+            start_y = Inches(1.35)
 
-        icons = ["💡", "🚀", "🎯", "🔍"]
+            icons = ["💡", "🚀", "🎯", "🔍"]
 
-        for idx, sec in enumerate(sections):
-            y_pos = start_y + idx * (card_h + gap_y)
-            card_b = slide4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), y_pos, card_w, card_h)
-            card_b.fill.solid()
-            card_b.fill.fore_color.rgb = CARD_BG
-            card_b.line.color.rgb = CARD_BORDER
+            for idx, sec in enumerate(sections):
+                y_pos = start_y + idx * (card_h + gap_y)
+                card_b = slide4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), y_pos, card_w, card_h)
+                card_b.fill.solid()
+                card_b.fill.fore_color.rgb = CARD_BG
+                card_b.line.color.rgb = CARD_BORDER
 
-            acc_b = slide4.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), y_pos, Inches(0.1), card_h)
-            acc_b.fill.solid()
-            acc_b.fill.fore_color.rgb = accents_cycle[idx % len(accents_cycle)]
-            acc_b.line.fill.background()
+                acc_b = slide4.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.8), y_pos, Inches(0.1), card_h)
+                acc_b.fill.solid()
+                acc_b.fill.fore_color.rgb = accents_cycle[idx % len(accents_cycle)]
+                acc_b.line.fill.background()
 
-            tf_b = card_b.text_frame
-            tf_b.word_wrap = True
-            tf_b.margin_left = tf_b.margin_right = Inches(0.28)
-            tf_b.margin_top = Inches(0.12)
+                tf_b = card_b.text_frame
+                tf_b.word_wrap = True
+                tf_b.margin_left = tf_b.margin_right = Inches(0.28)
+                tf_b.margin_top = Inches(0.12)
 
-            icon = icons[idx % len(icons)]
-            p_bt = tf_b.paragraphs[0]
-            p_bt.text = f"{icon} {idx+1}. {sec['title'].upper()}"
-            p_bt.font.size = Pt(13)
-            p_bt.font.bold = True
-            p_bt.font.color.rgb = NAVY_PRIMARY
+                icon = icons[idx % len(icons)]
+                p_bt = tf_b.paragraphs[0]
+                p_bt.text = f"{icon} {idx+1}. {sec['title'].upper()}"
+                p_bt.font.size = Pt(13)
+                p_bt.font.bold = True
+                p_bt.font.color.rgb = NAVY_PRIMARY
 
-            add_formatted_markdown_text(tf_b, sec["content"], default_font_size=Pt(15), default_color=TEXT_BODY)
+                add_formatted_markdown_text(tf_b, sec["content"], default_font_size=Pt(15), default_color=TEXT_BODY)
 
     # ==========================================================================
     # SLIDE 5: Data Governance & SQL Audit Trail (2-Column Dashboard)
