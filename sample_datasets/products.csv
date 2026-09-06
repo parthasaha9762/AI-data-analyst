@@ -1,0 +1,216 @@
+product_id,product_name,category,unit_price,stock_quantity
+2001,Backpack v1,Accessories,1116.2,125
+2002,Cotton T-Shirt v1,Clothing,1019.9,456
+2003,Yoga Mat v5,Sports,641.55,15
+2004,Bluetooth Speaker v2,Electronics,765.45,13
+2005,Dumbbell Set v5,Sports,637.99,229
+2006,Water Bottle 1L v1,Sports,1141.83,81
+2007,Leather Wallet v3,Accessories,427.64,110
+2008,Air Fryer v1,Home & Kitchen,579.19,183
+2009,Robotic Vacuum v3,Home & Kitchen,1213.59,373
+2010,SQL Complete Reference v1,Books,1460.08,193
+2011,Smartphone X v5,Electronics,1329.9,185
+2012,Dumbbell Set v1,Sports,83.05,116
+2013,Air Fryer v2,Home & Kitchen,1301.73,194
+2014,Non-Stick Pan v3,Home & Kitchen,256.54,181
+2015,Leather Belt v3,Clothing,1057.2,349
+2016,Backpack v5,Accessories,957.94,273
+2017,Smartwatch v2,Accessories,701.46,138
+2018,Keychains v5,Accessories,341.13,166
+2019,Bluetooth Speaker v1,Electronics,1210.49,205
+2020,Air Fryer v2,Home & Kitchen,1371.01,290
+2021,Sunglasses v2,Accessories,988.33,202
+2022,Leather Wallet v2,Accessories,408.35,126
+2023,Travel Mug v5,Accessories,405.17,299
+2024,SQL Complete Reference v4,Books,552.56,70
+2025,Treadmills Pro v1,Sports,1137.34,440
+2026,4K Monitor v2,Electronics,1191.24,216
+2027,Yoga Mat v4,Sports,581.7,239
+2028,Water Bottle 1L v5,Sports,1293.26,5
+2029,Keychains v1,Accessories,1027.34,274
+2030,Stainless Kettle v3,Home & Kitchen,180.65,222
+2031,Winter Coat v1,Clothing,1431.42,448
+2032,Sunglasses v5,Accessories,1146.51,259
+2033,Smartphone X v5,Electronics,919.32,78
+2034,Espresso Machine v5,Home & Kitchen,1430.95,472
+2035,Yoga Mat v5,Sports,,9
+2036,Tablet Air v3,Electronics,370.59,123
+2037,Yoga Mat v1,Sports,1101.88,417
+2038,4K Monitor v2,Electronics,994.73,484
+2039,Dumbbell Set v3,Sports,798.6,310
+2040,Python Mastery v5,Books,1136.57,353
+2041,Leather Belt v3,Clothing,607.5,343
+2042,Sunglasses v4,Accessories,1350.93,231
+2043,Bluetooth Speaker v2,Electronics,110.08,10
+2044,Cycling Helmet v2,Sports,888.83,3
+2045,Laptop Pro v2,Electronics,115.09,16
+2046,Air Fryer v5,Home & Kitchen,368.44,342
+2047,Python Mastery v5,Books,211.48,478
+2048,Cycling Helmet v4,Sports,375.85,242
+2049,Python Mastery v1,Books,158.94,220
+2050,Non-Stick Pan v4,Home & Kitchen,708.53,373
+2051,Wireless Mouse v1,Electronics,612.89,173
+2052,Bluetooth Speaker v2,Electronics,297.46,229
+2053,Winter Coat v2,Clothing,428.64,127
+2054,Headphones Pro v5,Electronics,160.39,333
+2055,Yoga Mat v1,Sports,1390.65,434
+2056,Cotton T-Shirt v4,Clothing,736.18,109
+2057,Data Science Guide v2,Books,577.78,199
+2058,Non-Stick Pan v3,Home & Kitchen,643.17,490
+2059,Travel Mug v4,Accessories,244.87,151
+2060,Denim Jacket v5,Clothing,1107.57,31
+2061,Sunglasses v1,Accessories,89.46,244
+2062,Cycling Helmet v2,Sports,99.47,260
+2063,4K Monitor v1,Electronics,898.63,345
+2064,Winter Coat v1,Clothing,1413.27,291
+2065,Slim Jeans v5,Clothing,74.02,41
+2066,SQL Complete Reference v5,Books,791.33,478
+2067,Espresso Machine v3,Home & Kitchen,369.45,202
+2068,Leather Belt v3,Clothing,693.98,475
+2069,Laptop Pro v4,Electronics,937.42,288
+2070,Wireless Mouse v5,Electronics,,135
+2071,Running Shoes v1,Clothing,1320.72,189
+2072,Espresso Machine v4,Home & Kitchen,1253.11,360
+2073,Robotic Vacuum v5,Home & Kitchen,26.62,418
+2074,Water Bottle 1L v1,Sports,1409.31,68
+2075,Air Fryer v1,Home & Kitchen,1117.49,79
+2076,Blender 3000 v5,Home & Kitchen,327.79,175
+2077,Leather Belt v3,Clothing,765.53,128
+2078,Wireless Mouse v4,Electronics,1246.58,22
+2079,Tablet Air v2,Electronics,961.11,134
+2080,Leather Belt v4,Clothing,834.25,218
+2081,Yoga Mat v1,Sports,126.74,452
+2082,Smartwatch v5,Accessories,68.5,189
+2083,Cycling Helmet v2,Sports,653.23,21
+2084,Blender 3000 v1,Home & Kitchen,1349.9,107
+2085,Smartwatch v1,Accessories,540.21,286
+2086,SQL Complete Reference v2,Books,1389.76,121
+2087,Casual Hoodie v2,Clothing,1323.9,12
+2088,Leather Belt v3,Clothing,1176.84,210
+2089,Keychains v2,Accessories,411.21,403
+2090,Backpack v4,Accessories,1310.17,439
+2091,Python Mastery v2,Books,1227.63,235
+2092,Blender 3000 v2,Home & Kitchen,346.04,337
+2093,Winter Coat v3,Clothing,428.73,35
+2094,Blender 3000 v5,Home & Kitchen,608.52,431
+2095,Water Bottle 1L v1,Sports,186.28,496
+2096,Espresso Machine v5,Home & Kitchen,1444.36,135
+2097,Wireless Mouse v5,Electronics,660.33,373
+2098,Non-Stick Pan v5,Home & Kitchen,1476.59,59
+2099,SQL Complete Reference v2,Books,393.26,362
+2100,Data Science Guide v5,Books,1389.48,275
+2101,Keychains v2,Accessories,555.87,35
+2102,Sunglasses v5,Accessories,481.16,434
+2103,Smartphone X v5,Electronics,474.29,209
+2104,Non-Stick Pan v3,Home & Kitchen,838.3,98
+2105,AI Revolution v2,Books,,154
+2106,SQL Complete Reference v1,Books,466.25,107
+2107,SQL Complete Reference v5,Books,987.24,238
+2108,AI Revolution v2,Books,774.09,406
+2109,Smartwatch v1,Accessories,436.42,339
+2110,Travel Mug v3,Accessories,153.68,487
+2111,Leather Belt v3,Clothing,348.59,101
+2112,Denim Jacket v1,Clothing,378.59,243
+2113,Yoga Mat v4,Sports,630.44,322
+2114,Dumbbell Set v4,Sports,749.15,124
+2115,Leather Belt v1,Clothing,1340.6,440
+2116,USB-C Cable v2,Electronics,276.19,490
+2117,Travel Mug v4,Accessories,89.57,127
+2118,Headphones Pro v2,Electronics,1205.1,341
+2119,Cycling Helmet v5,Sports,486.19,386
+2120,SQL Complete Reference v5,Books,648.71,464
+2121,Treadmills Pro v2,Sports,1119.33,243
+2122,Business Analytics 101 v2,Books,1262.2,141
+2123,Treadmills Pro v2,Sports,422.78,39
+2124,Sunglasses v2,Accessories,418.5,163
+2125,Yoga Mat v2,Sports,238.98,196
+2126,Smartwatch v2,Accessories,110.38,208
+2127,Robotic Vacuum v4,Home & Kitchen,632.42,105
+2128,AI Revolution v5,Books,1419.9,10
+2129,Treadmills Pro v4,Sports,23.76,180
+2130,Non-Stick Pan v4,Home & Kitchen,814.26,376
+2131,Cycling Helmet v2,Sports,740.02,139
+2132,AI Revolution v1,Books,592.45,342
+2133,Leather Wallet v2,Accessories,1263.15,470
+2134,Slim Jeans v5,Clothing,55.05,201
+2135,Cycling Helmet v1,Sports,139.66,219
+2136,Casual Hoodie v4,Clothing,284.87,133
+2137,Business Analytics 101 v2,Books,690.23,172
+2138,Business Analytics 101 v4,Books,389.62,41
+2139,Data Science Guide v5,Books,92.35,487
+2140,Espresso Machine v1,Home & Kitchen,,333
+2141,Laptop Pro v2,Electronics,311.05,10
+2142,Dumbbell Set v2,Sports,202.44,342
+2143,Bluetooth Speaker v4,Electronics,1053.71,392
+2144,Espresso Machine v5,Home & Kitchen,916.76,382
+2145,Backpack v2,Accessories,1447.61,55
+2146,Yoga Mat v3,Sports,870.06,464
+2147,AI Revolution v2,Books,127.85,353
+2148,Smartwatch v1,Accessories,1050.33,154
+2149,Travel Mug v1,Accessories,1197.4,289
+2150,Tablet Air v5,Electronics,651.14,189
+2151,Tablet Air v1,Electronics,1276.62,421
+2152,Data Science Guide v4,Books,1441.77,325
+2153,Python Mastery v4,Books,276.56,267
+2154,Sunglasses v5,Accessories,1215.18,275
+2155,AI Revolution v4,Books,1241.22,303
+2156,Blender 3000 v2,Home & Kitchen,1248.64,44
+2157,Non-Stick Pan v2,Home & Kitchen,1129.46,291
+2158,Tennis Racket v4,Sports,514.55,253
+2159,Espresso Machine v4,Home & Kitchen,330.0,408
+2160,Blender 3000 v3,Home & Kitchen,1322.28,359
+2161,Robotic Vacuum v1,Home & Kitchen,782.19,97
+2162,Bluetooth Speaker v4,Electronics,740.54,388
+2163,Leather Belt v4,Clothing,974.17,251
+2164,Data Science Guide v1,Books,451.94,207
+2165,Smartwatch v3,Accessories,1000.98,188
+2166,SQL Complete Reference v5,Books,525.48,381
+2167,Water Bottle 1L v3,Sports,1058.74,138
+2168,Blender 3000 v2,Home & Kitchen,194.17,98
+2169,Air Fryer v5,Home & Kitchen,1427.05,353
+2170,Cotton T-Shirt v2,Clothing,1111.83,141
+2171,Travel Mug v5,Accessories,901.23,51
+2172,Running Shoes v2,Clothing,550.91,154
+2173,4K Monitor v3,Electronics,82.59,27
+2174,Water Bottle 1L v2,Sports,962.24,385
+2175,Data Science Guide v1,Books,,240
+2176,AI Revolution v3,Books,288.78,26
+2177,Non-Stick Pan v1,Home & Kitchen,1235.84,205
+2178,Data Science Guide v5,Books,949.73,27
+2179,Cotton T-Shirt v5,Clothing,1424.45,43
+2180,Denim Jacket v5,Clothing,1150.2,310
+2181,Cycling Helmet v2,Sports,1166.9,194
+2182,AI Revolution v3,Books,1292.35,219
+2183,Robotic Vacuum v5,Home & Kitchen,104.44,491
+2184,Backpack v2,Accessories,943.89,135
+2185,Backpack v2,Accessories,371.2,282
+2186,4K Monitor v1,Electronics,621.65,352
+2187,Treadmills Pro v3,Sports,63.47,147
+2188,Sunglasses v4,Accessories,120.7,119
+2189,Stainless Kettle v5,Home & Kitchen,996.86,478
+2190,Winter Coat v1,Clothing,823.68,331
+2191,Running Shoes v2,Clothing,121.04,84
+2192,Robotic Vacuum v5,Home & Kitchen,1382.97,224
+2193,Headphones Pro v3,Electronics,1054.1,482
+2194,Robotic Vacuum v5,Home & Kitchen,748.29,41
+2195,Yoga Mat v4,Sports,1105.78,309
+2196,Air Fryer v1,Home & Kitchen,354.95,345
+2197,Cycling Helmet v1,Sports,1499.37,344
+2198,Robotic Vacuum v1,Home & Kitchen,1148.22,89
+2199,SQL Complete Reference v4,Books,1375.37,92
+2200,Treadmills Pro v4,Sports,1454.05,240
+2096,Espresso Machine v5,Home & Kitchen,1444.36,135
+2016,Backpack v5,Accessories,957.94,273
+2031,Winter Coat v1,Clothing,1431.42,448
+2159,Espresso Machine v4,Home & Kitchen,330.0,408
+2129,Treadmills Pro v4,Sports,23.76,180
+2116,USB-C Cable v2,Electronics,276.19,490
+2070,Wireless Mouse v5,Electronics,,135
+2171,Travel Mug v5,Accessories,901.23,51
+2175,Data Science Guide v1,Books,,240
+2046,Air Fryer v5,Home & Kitchen,368.44,342
+2067,Espresso Machine v3,Home & Kitchen,369.45,202
+2183,Robotic Vacuum v5,Home & Kitchen,104.44,491
+2166,SQL Complete Reference v5,Books,525.48,381
+2079,Tablet Air v2,Electronics,961.11,134
+2187,Treadmills Pro v3,Sports,63.47,147

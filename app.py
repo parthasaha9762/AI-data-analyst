@@ -74,6 +74,68 @@ st.title("AI Data Analyst")
 
 
 # ------------------------------------------------------------------------------
+# STEP 1: Sample Datasets Helper 
+# ------------------------------------------------------------------------------
+
+from pathlib import Path
+
+sample_directory = Path(__file__).resolve().parent/"sample_datasets"
+
+if not sample_directory.exists():
+    sample_directory = Path("sample_datasets")
+
+sample_info = [
+    {
+        "filename": "customers.csv",
+        "title": "👥 customers.csv",
+        "desc": "2,600 raw records • 5 columns\n(Includes sample nulls & duplicate rows to test data cleaning)",
+        "key": "dl_cust_raw"
+    },
+    {
+        "filename": "orders.csv",
+        "title": "📦 orders.csv",
+        "desc": "10,300 raw records • 7 columns\n(Includes sample nulls & duplicate rows to test data cleaning)",
+        "key": "dl_orders_raw"
+    },
+    {
+        "filename": "products.csv",
+        "title": "🏷️ products.csv",
+        "desc": "215 raw records • 5 columns\n(Includes sample nulls & duplicate rows to test data cleaning)",
+        "key": "dl_prod_raw"
+    }
+]
+
+with st.expander("💡 **Don't have a CSV file? Download sample datasets to test features**", expanded = not bool(st.session_state.get("datasets"))):
+    st.caption("Download our raw sample datasets containing real-world quality scenarios to test automated data preprocessing, SQL queries, interactive charts, and executive presentations:")
+
+    cols = st.columns(3)
+    for idx, item in enumerate(sample_info):
+        full_path = sample_directory/item["filename"]
+
+        with cols[idx]:
+            st.markdown(f"**{item['title']}**")
+            st.caption(item["desc"])
+
+            if full_path.exists():
+                with open(full_path, "rb") as file:
+                    try:
+                        # This line ensures the file handle is reset before reading, which is good practice
+                        file.seek(0)
+                        st.download_button(
+                            label= f"📥 Download `{item['filename']}`",
+                            data = file.read(),
+                            file_name=item["filename"],
+                            mime="text/csv",
+                            key=item["key"],
+                            use_container_width=True
+                        )
+                    except Exception as e:
+                        st.error("Download failed for technical issue. Please try again later.")
+            else:
+                st.warning(f"Error: {item['filename']} not found.")
+
+
+# ------------------------------------------------------------------------------
 # STEP 1: File Upload & Session State Initialization
 # ------------------------------------------------------------------------------
 # We initialize session state variables to ensure that uploaded data, database connections,
