@@ -8,6 +8,7 @@ presentations (.pptx) with full executive insights, zero-overflow cards, and cle
 import io
 import re
 import datetime
+import zipfile
 import pandas as pd
 from pptx import Presentation
 from pptx.util import Inches, Pt
@@ -162,12 +163,12 @@ def _add_slide_header(slide, category_tag: str, title_text: str, subtitle_text: 
 
 
 def _add_footer(slide, current_slide: int, total_slides: int):
-    """Adds slide number and branding footer."""
+    """Adds slide number, confidentiality mark, and view-only protection footer."""
     tb = slide.shapes.add_textbox(Inches(0.8), Inches(7.05), Inches(11.7), Inches(0.35))
     tf = tb.text_frame
     tf.margin_left = tf.margin_top = tf.margin_right = tf.margin_bottom = 0
     p = tf.paragraphs[0]
-    p.text = f"AI Data Analyst • Executive Briefing  |  Confidential  |  Slide {current_slide} of {total_slides}"
+    p.text = f"AI Data Analyst • Executive Briefing  |  Confidential • View-Only Mode  |  Slide {current_slide} of {total_slides}"
     p.font.size = Pt(11)
     p.font.color.rgb = TEXT_MUTED
 
@@ -218,12 +219,14 @@ def create_powerpoint_deck(
     chart_figure = None,
     chart_config: dict = None,
     business_insights: str = None,
-    dataset_names: list = None
+    dataset_names: list = None,
+    view_only_mode: bool = True
 ) -> bytes:
     """
     PURPOSE:
-    Compiles an interactive analysis session into a consulting-grade 16:9 widescreen PowerPoint deck (.pptx)
-    featuring full business insights, 16pt body typography, and executive corporate white styling.
+    Compiles an interactive analysis session into a consulting-grade 16:9 widescreen PowerPoint deck (.pptx).
+    When view_only_mode=True (default), embeds Microsoft Office's native 'Marked as Final / View-Only'
+    metadata so that when opened in the normal PowerPoint editor, the presentation is protected in View-Only mode.
     
     RETURNS:
     bytes: In-memory binary representation of the PPTX file.
@@ -783,4 +786,40 @@ def create_powerpoint_deck(
     output_stream = io.BytesIO()
     prs.save(output_stream)
     output_stream.seek(0)
-    return output_stream.getvalue()
+    raw_bytes = output_stream.getvalue()
+
+    if view_only_mode:
+        # Embed Microsoft Office 'Marked as Final' / View-Only OpenXML properties
+        # This prompts PowerPoint to open in normal editor view with View-Only / Final protection enabled
+        custom_xml = (
+            b'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n'
+            b'<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/custom-properties" '
+            b'xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">\r\n'
+            b'  <property fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" pid="2" name="_MarkAsFinal">\r\n'
+            b'    <vt:bool>true</vt:bool>\r\n'
+            b'  </property>\r\n'
+            b'</Properties>'
+        )
+
+        in_mem = io.BytesIO(raw_bytes)
+        out_mem = io.BytesIO()
+        with zipfile.ZipFile(in_mem, 'r') as zin, zipfile.ZipFile(out_mem, 'w', compression=zipfile.ZIP_DEFLATED) as zout:
+            for item in zin.namelist():
+                data = zin.read(item)
+                if item == '[Content_Types].xml':
+                    override = b'<Override PartName="/docProps/custom.xml" ContentType="application/vnd.openxmlformats-officedocument.custom-properties+xml"/>'
+                    data = data.replace(b'</Types>', override + b'</Types>')
+                elif item == '_rels/.rels':
+                    rel = b'<Relationship Id="rIdCustomProps" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties" Target="docProps/custom.xml"/>'
+                    data = data.replace(b'</Relationships>', rel + b'</Relationships>')
+                elif item == 'docProps/core.xml':
+                    if b'</cp:coreProperties>' in data and b'<cp:contentStatus>' not in data:
+                        status_tag = b'<cp:contentStatus>Final</cp:contentStatus>'
+                        data = data.replace(b'</cp:coreProperties>', status_tag + b'</cp:coreProperties>')
+                zout.writestr(item, data)
+            zout.writestr('docProps/custom.xml', custom_xml)
+
+        out_mem.seek(0)
+        return out_mem.getvalue()
+
+    return raw_bytes

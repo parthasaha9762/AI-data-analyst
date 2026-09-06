@@ -539,7 +539,7 @@ if "active_sql" in st.session_state:
         dataset_names = list(st.session_state.get("datasets", {}).keys())
         
 
-        # Compile presentation in memory
+        # Compile presentation in memory (View-Only Protected .pptx)
         try:
             pptx_bytes = create_powerpoint_deck(
                 user_question=current_question,
@@ -549,27 +549,22 @@ if "active_sql" in st.session_state:
                 chart_figure=current_fig,
                 chart_config=current_chart_config,
                 business_insights=current_insights,
-                dataset_names=dataset_names
+                dataset_names=dataset_names,
+                view_only_mode=True
             )
 
-            # Generate clean filename
-            filename = f"Analysis Deck.pptx"
+            col_btn, _ = st.columns([2,3])
+            with col_btn:
+                st.download_button(
+                    label="📥 Download Presentation (.pptx)",
+                    data=pptx_bytes,
+                    file_name="Executive_Data_Briefing.pptx",
+                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                    type="primary",
+                    use_container_width=True
+                )
 
-            # Display download button in download-themed container
-            if pptx_bytes:
-
-                col_btn, _ = st.columns([2,3])
-                with col_btn:
-                    st.download_button(
-                        label="📥 Download Presentation (PPTX) file",
-                        data=pptx_bytes,
-                        file_name=filename,
-                        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                        type="primary",
-                        use_container_width=True
-                    )
-
-                st.caption(f"Saved as: {filename} • Executive widescreen slide deck • Ready for board meetings and stakeholder briefings")
+            st.caption("🔒 **Confidentiality Protected**: This presentation opens in **View-Only Mode** by default to prevent unintended changes.")
 
         except Exception as e:
             st.error("Sorry! Could not generate presentation deck. Please try again.")
