@@ -320,6 +320,24 @@ if __name__ == "__main__":
         print(f"Error: {e}\n")
 
     # ---------------------------------------------------
+    # Test 3: Standalone Question Synthesis (Executive Context)
+    # (Rewrites follow-up into a standalone question)
+    # ---------------------------------------------------
+    print("=" * 60)
+    print("TEST 3: Standalone Question Synthesis")
+    print("=" * 60)
+    try:
+        standalone_q = synthesize_standalone_question(
+            conversation_history=fake_history,
+            current_question="Now filter that for only 2024",
+            generated_sql=sql_2
+        )
+        print(f"Follow-Up Question: 'Now filter that for only 2024'")
+        print(f"Synthesized Standalone Question: {standalone_q}\n")
+    except Exception as e:
+        print(f"Error: {e}\n")
+
+    # ---------------------------------------------------
     # Test 4: Fuzzy / Partial product name matching
     # ---------------------------------------------------
     print("=" * 60)

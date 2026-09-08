@@ -6,31 +6,17 @@ It integrates all backend and AI modules to provide a seamless, end-to-end conve
 data analysis experience.
 
 Key Application Workflow:
-1. Multi-CSV Ingestion & Storage:
-   - Allows users to upload one or multiple CSV files.
-   - Stores raw datasets in Streamlit's session state.
-2. Automated Data Quality & Cleaning:
-   - Identifies and auto-cleans missing values (numeric -> 0, text -> 'N/A').
-   - Detects and eliminates duplicate rows.
-   - Generates summary statistics, table dimensions, and sample previews.
-3. In-Memory Database & Schema Management:
-   - Loads cleaned DataFrames into an in-memory SQLite database via DatabaseManager.
-   - Extracts schema metadata, data types, and primary/foreign key relationships.
-   - Compiles a unified schema context formatted specifically for LLMs.
-4. Two-Tier Query Validation:
-   - Tier 1: Instant heuristic checks to filter empty, trivial, or gibberish input.
-   - Tier 2: Semantic validation during SQL generation to catch non-analytical prompts.
-5. AI SQL Generation & Plain-English Explanation:
-   - Converts natural language business questions into precise, executable SQLite queries.
-   - Generates clear, step-by-step business explanations of how the SQL query works.
-   - Provides an interactive SQL Workbench for manual edits and immediate re-execution.
-6. Intelligent Data Visualization (Plotly):
-   - User-controlled visualization trigger (opt-in rendering).
-   - AI-powered chart recommendation (Chart type, X/Y axes, color grouping, title).
-   - Interactive Plotly figures with high-impact executive conclusion takeaways.
-7. Executive Business Insights & Growth Actions (AI Pro):
-   - Synthesizes statistical context, query results, and business context.
-   - Delivers actionable strategic recommendations and risk/opportunity analyses.
+1. Step 1: Page Configuration, Theme Styling & Asset Loading
+2. Step 2: Executive Hero Header & Status Banner
+3. Step 3: Session State Initialization & Workspace Setup
+4. Step 4: Sample Datasets Showcase & 1-Click Demo Loader
+5. Step 5: Multi-CSV File Upload & Automated Preprocessing Engine
+6. Step 6: Interactive Data Quality Health & Relational Schema Studio
+7. Step 7: Natural Language Query Interface & Two-Tier Validation
+8. Step 8: Render Active Query Results, Interactive SQL Workbench & Explanations
+9. Step 9: Intelligent Plotly Visualization Studio
+10. Step 10: Executive Business Insights & Strategic Growth Actions (AI Pro)
+11. Step 11: Boardroom PowerPoint Presentation (.pptx) Export Hub
 """
 
 from pathlib import Path
@@ -71,8 +57,10 @@ from modules.presentation_generator import create_powerpoint_deck
 
 
 # ------------------------------------------------------------------------------
-# Page Configuration & UI Theme Styling
+# STEP 1: Page Configuration, Theme Styling & Asset Loading
 # ------------------------------------------------------------------------------
+# Configure Streamlit page settings: wide layout for multi-column dashboards,
+# custom browser tab title, and collapsed sidebar for a clean initial view.
 st.set_page_config(
     page_title="AI Data Analyst - Enterprise Intelligence",
     page_icon="⚡",
@@ -81,7 +69,10 @@ st.set_page_config(
 )
 
 def load_css(file_path: Path):
-    """Loads and injects external CSS stylesheet into Streamlit."""
+    """
+    Loads and injects external CSS stylesheet into Streamlit.
+    Ensures safe loading by verifying file existence before reading.
+    """
     if file_path.exists():
         with open(file_path, "r", encoding="utf-8") as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -92,8 +83,10 @@ load_css(Path(__file__).resolve().parent / "assets" / "style.css")
 
 
 # ------------------------------------------------------------------------------
-# STEP 0: Executive Hero Header Banner (Animated)
+# STEP 2: Executive Hero Header & Status Banner
 # ------------------------------------------------------------------------------
+# Displays the top hero section with dynamic branding, live engine badge,
+# core capability tags, and luxury glassmorphism styling.
 st.markdown("""
 <div class="hero-wrapper">
     <div class="hero-header-row">
@@ -119,9 +112,14 @@ st.markdown("""
 
 
 # ------------------------------------------------------------------------------
-# STEP 1: Session State Initialization & Workspace Setup
+# STEP 3: Session State Initialization & Workspace Setup
 # ------------------------------------------------------------------------------
-# Key = table_name (e.g. "orders"), Value = Pandas DataFrame
+# Maintains persistent user session data across Streamlit reruns:
+# - `datasets`: In-memory dictionary mapping table_name -> cleaned pandas DataFrame
+# - `cleaning_audit`: Detailed log of missing values imputed and duplicate rows purged
+# - `db_manager`: Active in-memory SQLite connection for executing queries
+# - `conversation_history`: Memory buffer of prior (question, SQL) turns for follow-ups
+
 if "datasets" not in st.session_state:
     st.session_state["datasets"] = {}
 
@@ -141,8 +139,10 @@ if "conversation_history" not in st.session_state:
 
 
 # ------------------------------------------------------------------------------
-# STEP 2: Sample Datasets Showcase & Download Helper
+# STEP 4: Sample Datasets Showcase & 1-Click Demo Loader
 # ------------------------------------------------------------------------------
+# Provides pre-built relational datasets (customers, orders, products) so users
+# can immediately test multi-table joins, data cleaning, and AI visualizations.
 sample_directory = Path(__file__).resolve().parent / "sample_datasets"
 if not sample_directory.exists():
     sample_directory = Path("sample_datasets")
@@ -177,6 +177,7 @@ with st.expander("💡 **Don't have a CSV file? Download or load sample datasets
 
     with col_load:
         if is_sample_active:
+            # Button to clear the demo workspace and reset database state
             if st.button("🗑️ Remove Sample Datasets", type="secondary", use_container_width=True):
                 st.session_state["datasets"] = {}
                 st.session_state["cleaning_audit"] = {}
@@ -194,6 +195,7 @@ with st.expander("💡 **Don't have a CSV file? Download or load sample datasets
                 st.toast("Sample datasets removed!", icon="🗑️")
                 st.rerun()
         else:
+            # 1-Click Loader: Reads all 3 sample CSV files, applies data cleaning, and registers in SQLite
             if st.button("⚡ Load All 3 Sample Datasets (1-Click)", type="primary", use_container_width=True):
                 for item in sample_info:
                     fpath = sample_directory / item["filename"]
@@ -202,17 +204,17 @@ with st.expander("💡 **Don't have a CSV file? Download or load sample datasets
                         table_name = item["filename"].rsplit(".", 1)[0]
                         orig_len = len(raw_df)
 
-                        # Missing values analysis
+                        # Missing values analysis before cleaning
                         missing_by_col = raw_df.isnull().sum()
                         missing_by_col = missing_by_col[missing_by_col > 0]
                         null_count = int(missing_by_col.sum())
                         missing_rows_df = raw_df[raw_df.isnull().any(axis=1)].copy()
 
-                        # Duplicate records analysis
+                        # Duplicate records analysis before cleaning
                         dup_count = int(raw_df.duplicated().sum())
                         duplicate_rows_df = raw_df[raw_df.duplicated(keep=False)].copy()
 
-                        # Auto-clean nulls
+                        # Automated Data Cleaning: Impute missing numeric values with 0, text with 'N/A'
                         df = raw_df.copy()
                         for col in df.columns:
                             if "int" in str(df[col].dtype).lower() or "float" in str(df[col].dtype).lower():
@@ -220,9 +222,10 @@ with st.expander("💡 **Don't have a CSV file? Download or load sample datasets
                             else:
                                 df[col] = df[col].fillna("N/A")
 
-                        # Auto-clean duplicates
+                        # Automated Data Cleaning: Drop exact duplicate rows
                         df = df.drop_duplicates().reset_index(drop=True)
 
+                        # Register cleaned dataframe and audit records
                         st.session_state["datasets"][table_name] = df
                         st.session_state["cleaning_audit"][table_name] = {
                             "orig_rows": orig_len,
@@ -250,6 +253,7 @@ with st.expander("💡 **Don't have a CSV file? Download or load sample datasets
             st.caption("⚡ **Instant Demo Mode**: Automatically ingests `customers`, `orders`, and `products`, resolves foreign key joins, and launches the AI analysis engine.")
 
     st.markdown("---")
+    # Individual dataset download buttons for offline testing
     cols = st.columns(3)
     for idx, item in enumerate(sample_info):
         full_path = sample_directory / item["filename"]
@@ -275,8 +279,10 @@ with st.expander("💡 **Don't have a CSV file? Download or load sample datasets
 
 
 # ------------------------------------------------------------------------------
-# STEP 3: File Upload & Multi-CSV Ingestion
+# STEP 5: Multi-CSV File Upload & Automated Preprocessing Engine
 # ------------------------------------------------------------------------------
+# Handles custom CSV file uploads, multi-file batch ingestion, automatic
+# missing value imputation, duplicate elimination, and audit logging.
 uploaded_files = st.file_uploader(
     "Upload your CSV files", type=["csv"],
     accept_multiple_files=True
@@ -291,13 +297,13 @@ if uploaded_files:
         table_name = file.name.rsplit(".", 1)[0]
         orig_len = len(raw_df)
 
-        # Missing values analysis
+        # Missing values analysis before cleaning
         missing_by_col = raw_df.isnull().sum()
         missing_by_col = missing_by_col[missing_by_col > 0]
         null_count = int(missing_by_col.sum())
         missing_rows_df = raw_df[raw_df.isnull().any(axis=1)].copy()
 
-        # Duplicate records analysis
+        # Duplicate records analysis before cleaning
         dup_count = int(raw_df.duplicated().sum())
         duplicate_rows_df = raw_df[raw_df.duplicated(keep=False)].copy()
 
@@ -333,22 +339,24 @@ elif st.session_state.get("dataset_source") == "upload":
 
 
 # ------------------------------------------------------------------------------
-# STEP 4: Interactive Executive Data Quality & Relational Schema Inspection
+# STEP 6: Interactive Data Quality Health & Relational Schema Studio
 # ------------------------------------------------------------------------------
+# Ingests cleaned DataFrames into SQLite, calculates overarching data quality
+# KPIs, and renders the tabbed interactive data explorer studio.
 if st.session_state.get("datasets"):
     datasets = st.session_state["datasets"]
 
-    # Load cleaned datasets into SQLite database
+    # Load cleaned datasets into SQLite database tables
     st.session_state["db_manager"].load_datasets(datasets)
 
-    # Calculate overall data health stats
+    # Calculate overall data health statistics across all ingested tables
     total_tbls = len(datasets)
     total_records = sum(len(d) for d in datasets.values())
     total_columns_count = sum(len(d.columns) for d in datasets.values())
     total_nulls = sum(st.session_state.get("cleaning_audit", {}).get(t, {}).get("nulls_fixed", 0) for t in datasets)
     total_dups = sum(st.session_state.get("cleaning_audit", {}).get(t, {}).get("dups_removed", 0) for t in datasets)
 
-    # Executive Metric KPI Tiles Row (with Animations)
+    # Executive Metric KPI Tiles Row (with Animations and Glassmorphism)
     st.markdown("### 📊 Ingested Datasets & Data Quality Health")
     kpi_col1, kpi_col2, kpi_col3, kpi_col4 = st.columns(4)
 
@@ -402,7 +410,7 @@ if st.session_state.get("datasets"):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Interactive Tabbed Dataset Explorer
+    # Interactive Tabbed Dataset Explorer Studio
     tab_overview, tab_cleaning, tab_preview, tab_stats, tab_schema = st.tabs([
         "📁 Tables & Dimensions",
         "🧹 Data Quality Audit Log",
@@ -411,6 +419,7 @@ if st.session_state.get("datasets"):
         "🤖 AI Schema Context (for LLM)"
     ])
 
+    # Tab 1: Tables & Dimensions Overview
     with tab_overview:
         overview_cols = st.columns(min(len(datasets), 3))
         for idx, (tname, tdf) in enumerate(datasets.items()):
@@ -429,6 +438,7 @@ if st.session_state.get("datasets"):
                 </div>
                 """, unsafe_allow_html=True)
 
+    # Tab 2: Data Quality & Cleaning Audit Log
     with tab_cleaning:
         st.markdown("#### 🧹 Data Quality Audit Log")
         st.caption("Summary of total records, duplicate records, and missing values detected and cleaned across tables:")
@@ -466,6 +476,7 @@ if st.session_state.get("datasets"):
                 </div>
                 """, unsafe_allow_html=True)
 
+    # Tab 3: Interactive Data Preview & Column Types
     with tab_preview:
         selected_tbl = st.selectbox("Select table to inspect:", list(datasets.keys()), key="preview_tbl_select")
         if selected_tbl:
@@ -487,6 +498,7 @@ if st.session_state.get("datasets"):
                 )
                 st.write(clean_dtypes)
 
+    # Tab 4: Descriptive Statistical Distributions
     with tab_stats:
         selected_stat_tbl = st.selectbox("Select table for descriptive statistics:", list(datasets.keys()), key="stat_tbl_select")
         if selected_stat_tbl:
@@ -496,6 +508,7 @@ if st.session_state.get("datasets"):
             else:
                 st.info("No numeric columns found in this table for statistical distribution.")
 
+    # Tab 5: AI-Readable Schema Context Representation
     with tab_schema:
         schema_context_text = generate_schema_context(datasets)
         st.markdown("#### 🤖 AI-Readable Schema Context (for LLM)")
@@ -504,8 +517,11 @@ if st.session_state.get("datasets"):
 
 
 # ------------------------------------------------------------------------------
-# STEP 5: Natural Language Query Interface
+# STEP 7: Natural Language Query Interface & Two-Tier Validation
 # ------------------------------------------------------------------------------
+# Captures user questions from quick prompt pills or chat input, executes
+# fast heuristic validation (Tier 1), generates SQL via Gemini, applies
+# semantic validation (Tier 2), and executes the query on SQLite.
 if st.session_state.get("datasets"):
     with st.expander("⚡ **Quick Analytical Prompts (Click to Analyze)**", expanded=False):
         prompt_cols = st.columns(3)
@@ -536,6 +552,7 @@ if active_input_prompt:
         question = active_input_prompt.strip()
 
         # --- Tier 1 Validation: Fast Heuristic Validation (0ms latency, zero API cost) ---
+        # Detects empty queries, character spam, keyboard mashing, or low-vowel gibberish
         is_valid, warning_msg = is_meaningful_query(question)
         if not is_valid:
             st.warning(f"⚠️ {warning_msg}")
@@ -555,6 +572,7 @@ if active_input_prompt:
                     )
 
                 # --- Tier 2 Validation: LLM Semantic Verification ---
+                # Checks if the prompt was deemed non-analytical or unanswerable by the model
                 if generated_sql.strip() == "INVALID_QUERY":
                     st.error("⚠️ Your question doesn't appear to be related to your uploaded dataset or data analysis. Please ask a specific question about your data (e.g., 'What are the top 5 sales by category?').")
                 else:
@@ -613,13 +631,15 @@ if active_input_prompt:
 
 
 # ------------------------------------------------------------------------------
-# STEP 7: Render Active Query Results, SQL Workbench, and Explanations
+# STEP 8: Render Active Query Results, Interactive SQL Workbench & Explanations
 # ------------------------------------------------------------------------------
+# Renders the current analytical question, executed SQL code block, editable
+# SQL Workbench for manual adjustments, tabular query results, and explanation.
 if "active_sql" in st.session_state:
     st.markdown("---")
     turn_count = len(st.session_state.get("conversation_history", []))
 
-    # Active Query Status Card
+    # Active Query Status Card with multi-turn memory badge
     st.markdown(f"""
     <div class="custom-card" style="border-left: 4px solid #6366F1;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
@@ -664,7 +684,7 @@ if "active_sql" in st.session_state:
             else:
                 st.warning("Please enter a valid SQL query.")
 
-    # Tabular Query Results Viewer
+    # Tabular Query Results Viewer with record counter and CSV export
     st.subheader("📊 Query Results")
     active_df = st.session_state.get("active_df")
 
@@ -691,8 +711,10 @@ if "active_sql" in st.session_state:
 
 
     # --------------------------------------------------------------------------
-    # STEP 8: Intelligent Plotly Visualization Studio
+    # STEP 9: Intelligent Plotly Visualization Studio
     # --------------------------------------------------------------------------
+    # Offers user opt-in control to generate publication-ready Plotly charts
+    # featuring automated chart selection, custom theme palettes, and conclusion takeaways.
     active_question = st.session_state.get("active_question", "")
 
     if active_df is not None and not active_df.empty:
@@ -767,7 +789,7 @@ if "active_sql" in st.session_state:
 
 
     # --------------------------------------------------------------------------
-    # STEP 9: Executive Business Insights & Growth Actions (AI Pro)
+    # STEP 10: Executive Business Insights & Strategic Growth Actions (AI Pro)
     # --------------------------------------------------------------------------
     # Formulates high-level strategic insights, performance metrics, and growth recommendations
     # based on statistical context, SQL query logic, and user question intent.
@@ -804,9 +826,10 @@ if "active_sql" in st.session_state:
 
 
     # --------------------------------------------------------------------------
-    # STEP 10: Executive PowerPoint Presentation Export Hub (.pptx)
+    # STEP 11: Boardroom PowerPoint Presentation (.pptx) Export Hub
     # --------------------------------------------------------------------------
-    # Generate a boardroom-ready, executive 16:9 widescreen PowerPoint presentation.
+    # Compiles an executive 16:9 widescreen PowerPoint presentation (.pptx)
+    # with presentation decks, visual cards, SQL lineage, charts, and action roadmaps.
     if active_df is not None and not active_df.empty:
         st.markdown("---")
         st.subheader("💼 Boardroom PowerPoint Presentation Hub")

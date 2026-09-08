@@ -99,11 +99,10 @@ def generate_schema_context(
                 elif rel["confidence_score"] > best_relationships[pair_key]["confidence_score"]:
                     best_relationships[pair_key] = rel
 
-            # Add formatted relationships
+            # Add formatted relationships using standard ASCII arrow (->) for universal compatibility
             for rel in best_relationships.values():
-                rel_str = f"- {rel['source_table']}.{rel['source_column']} → {rel['target_table']}.{rel['target_column']}"
+                rel_str = f"- {rel['source_table']}.{rel['source_column']} -> {rel['target_table']}.{rel['target_column']}"
                 lines.append(rel_str)
-            
 
     return "\n".join(lines).strip()
             

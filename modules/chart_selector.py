@@ -21,9 +21,11 @@ import plotly.graph_objects as go
 from google import genai
 from google.genai import types
 
-# TODO 1: Implement format_dataframe_context(df)
-# TODO 2: Implement recommend_chart_config(user_question, df)
-# TODO 3: Implement generate_plotly_chart(df, chart_config)
+# Core Module Components:
+# 1. format_dataframe_context(df): Formats SQL results & metadata as structured JSON for the LLM
+# 2. get_sorted_flash_models(client): Dynamically discovers & caches available Gemini Flash models
+# 3. recommend_chart_config(user_question, df): Uses Gemini to determine chart type, axes & executive takeaways
+# 4. generate_plotly_chart(df, chart_config): Renders publication-grade interactive Plotly figures
 
 # Module-level cache to remember discovered models across calls
 _CACHED_MODELS = None
@@ -137,7 +139,7 @@ def recommend_chart_config(user_question: str, df: pd.DataFrame)->dict:
 
     client = genai.Client(api_key=api_key)
 
-    # Call Step 1 helper function to format the DataFrame as a JSON string
+    # Format the DataFrame context and sample rows as a structured JSON string
     df_context_json = format_dataframe_context(df)
 
     # Construct the LLM prompt with strict rules for chart selection
