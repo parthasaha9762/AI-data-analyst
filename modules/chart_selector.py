@@ -245,22 +245,35 @@ def generate_plotly_chart(df: pd.DataFrame, chart_config: dict)-> go.Figure:
     if chart_type == "table" or not x_col or x_col not in df.columns:
         return None
 
-    # Sleek color sequence palette for Plotly charts
-    custom_color_sequence = px.colors.qualitative.Bold
+    # Sleek luxury modern color palette for Plotly charts (Electric Indigo, Cyan, Emerald, Amber, Rose, Violet)
+    custom_color_sequence = [
+        "#6366F1", "#06B6D4", "#10B981", "#F59E0B", "#EC4899", 
+        "#8B5CF6", "#3B82F6", "#14B8A6", "#F97316", "#A855F7"
+    ]
 
     try:
-        # 1. BAR CHART: Best for categorical rankings or comparisons
+        # 1. BAR CHART: Best for categorical rankings or comparisons (multi-colored per category)
         if chart_type == "bar":
+            bar_color = color_col if (color_col and color_col in df.columns) else x_col
             fig = px.bar(
                 df, 
                 x=x_col, 
                 y=y_col, 
-                color=color_col if color_col in df.columns else None,
+                color=bar_color,
                 title=title,
                 text_auto=True if len(df) <= 15 else False, # Automatically display numeric labels on bars
                 color_discrete_sequence=custom_color_sequence
             )
-            fig.update_layout(xaxis_title=x_col, yaxis_title=y_col)
+            fig.update_traces(
+                marker_line_width=0, 
+                opacity=0.92,
+                textfont=dict(family="Inter, sans-serif", size=11),
+                textposition="outside" if len(df) <= 12 else "inside"
+            )
+            fig.update_layout(
+                xaxis_title=x_col, 
+                yaxis_title=y_col
+            )
 
         # 2. LINE CHART: Best for time-series trends (dates, months, growth)
         elif chart_type == "line":
@@ -268,10 +281,14 @@ def generate_plotly_chart(df: pd.DataFrame, chart_config: dict)-> go.Figure:
                 df, 
                 x=x_col, 
                 y=y_col, 
-                color=color_col if color_col in df.columns else None,
+                color=color_col if (color_col and color_col in df.columns) else None,
                 title=title,
                 markers=True, # Show data point dots on line
                 color_discrete_sequence=custom_color_sequence
+            )
+            fig.update_traces(
+                line=dict(width=3.2, shape="spline"),
+                marker=dict(size=8, symbol="circle", line=dict(width=2, color="#FFFFFF"))
             )
             fig.update_layout(xaxis_title=x_col, yaxis_title=y_col)
 
@@ -282,40 +299,92 @@ def generate_plotly_chart(df: pd.DataFrame, chart_config: dict)-> go.Figure:
                 names=x_col, 
                 values=y_col if y_col in df.columns else None,
                 title=title,
-                hole=0.3, # Donut-style hole in center
+                hole=0.42, # Modern donut-style hole in center
                 color_discrete_sequence=custom_color_sequence
+            )
+            fig.update_traces(
+                textposition="inside",
+                textinfo="percent+label",
+                marker=dict(line=dict(color="#FFFFFF", width=2))
             )
 
         # 4. SCATTER PLOT: Best for correlation between two numeric columns
         elif chart_type == "scatter":
+            scatter_color = color_col if (color_col and color_col in df.columns) else x_col
             fig = px.scatter(
                 df, 
                 x=x_col, 
                 y=y_col, 
-                color=color_col if color_col in df.columns else None,
+                color=scatter_color,
                 title=title,
                 color_discrete_sequence=custom_color_sequence
+            )
+            fig.update_traces(
+                marker=dict(size=10, opacity=0.85, line=dict(width=1.5, color="#FFFFFF"))
             )
             fig.update_layout(xaxis_title=x_col, yaxis_title=y_col)
 
         # 5. HISTOGRAM: Best for numeric distributions
         elif chart_type == "histogram":
+            hist_color = color_col if (color_col and color_col in df.columns) else x_col
             fig = px.histogram(
                 df, 
                 x=x_col, 
-                color=color_col if color_col in df.columns else None,
+                color=hist_color,
                 title=title,
                 color_discrete_sequence=custom_color_sequence
+            )
+            fig.update_traces(
+                marker_line_width=0.5,
+                marker_line_color="#FFFFFF",
+                opacity=0.9
             )
 
         # Default Fallback: Bar chart
         else:
-            fig = px.bar(df, x=x_col, y=y_col, title=title)
+            bar_color = color_col if (color_col and color_col in df.columns) else x_col
+            fig = px.bar(df, x=x_col, y=y_col, color=bar_color, title=title, color_discrete_sequence=custom_color_sequence)
 
-        # Apply clean modern white layout background
+        # Apply high-end, responsive modern layout with custom typography, visible legends, and clean gridlines
         fig.update_layout(
             template="plotly_white",
-            margin=dict(l=40, r=40, t=60, b=40)
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            showlegend=True,
+            font=dict(family="Plus Jakarta Sans, Inter, -apple-system, sans-serif", size=13),
+            title=dict(
+                font=dict(size=18, family="Plus Jakarta Sans, Inter, sans-serif"),
+                x=0.01,
+                y=0.96
+            ),
+            xaxis=dict(
+                gridcolor="rgba(148, 163, 184, 0.18)",
+                zerolinecolor="rgba(148, 163, 184, 0.25)",
+                tickfont=dict(family="Inter, sans-serif", size=11)
+            ),
+            yaxis=dict(
+                gridcolor="rgba(148, 163, 184, 0.18)",
+                zerolinecolor="rgba(148, 163, 184, 0.25)",
+                tickfont=dict(family="Inter, sans-serif", size=11)
+            ),
+            legend=dict(
+                orientation="v",
+                yanchor="top",
+                y=1,
+                xanchor="left",
+                x=1.02,
+                font=dict(family="Inter, sans-serif", size=10.5),
+                itemsizing="constant",
+                tracegroupgap=2
+            ),
+            hoverlabel=dict(
+                bgcolor="#0F172A",
+                font_color="#FFFFFF",
+                font_size=12,
+                font_family="Inter, sans-serif",
+                bordercolor="#6366F1"
+            ),
+            margin=dict(l=30, r=40, t=65, b=35)
         )
         return fig
 

@@ -1,0 +1,489 @@
+/* ==========================================================================
+   AI Data Analyst - Enterprise Intelligence Design System & Animations
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* Hide Sidebar and Sidebar Controls */
+[data-testid="stSidebar"], [data-testid="collapsedControl"], section[data-testid="stSidebar"] {
+    display: none !important;
+}
+
+/* 1. Global Typography and Styling */
+html, body, [class*="css"] {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.01em;
+}
+
+code, pre, .stCodeBlock {
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* 2. Keyframe Animations */
+@keyframes shimmer-sweep {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(0.95);
+        box-shadow: 0 0 4px rgba(16, 185, 129, 0.3);
+    }
+}
+
+@keyframes float-slow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+@keyframes border-pulse {
+    0%, 100% {
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+    50% {
+        border-color: rgba(6, 182, 212, 0.65);
+    }
+}
+
+/* 3. Hero Banner Styling */
+.hero-wrapper {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.92) 50%, rgba(15, 23, 42, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.35), 0 0 20px rgba(99, 102, 241, 0.15);
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.hero-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #6366F1, #06B6D4, #10B981, #8B5CF6);
+    background-size: 200% 200%;
+    animation: shimmer-sweep 4s linear infinite;
+}
+
+.hero-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.hero-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 0;
+    background: linear-gradient(135deg, #FFFFFF 20%, #E2E8F0 60%, #94A3B8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.hero-subtitle {
+    font-size: 1.05rem;
+    color: #94A3B8;
+    margin-bottom: 18px;
+    line-height: 1.5;
+}
+
+.hero-badge-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #34D399;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.hero-badge-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #10B981;
+    border-radius: 50%;
+    animation: pulse-glow 2s infinite;
+}
+
+.hero-tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hero-tag {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #CBD5E1;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.hero-tag:hover {
+    background: rgba(99, 102, 241, 0.18);
+    border-color: rgba(99, 102, 241, 0.4);
+    color: #FFFFFF;
+    transform: translateY(-1px);
+}
+
+/* 4. Metric KPI Cards */
+.metric-card-container {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 18px 20px;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.metric-card-container:hover {
+    transform: translateY(-3px);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 12px 30px -8px rgba(99, 102, 241, 0.25);
+}
+
+.metric-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.metric-card-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.metric-card-icon {
+    font-size: 1.3rem;
+}
+
+.metric-card-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.metric-card-desc {
+    font-size: 0.78rem;
+    color: #64748B;
+}
+
+/* 5. Custom Card Containers */
+.custom-card {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.25);
+    animation: fadeInUp 0.4s ease-out;
+}
+
+/* 6. Executive Takeaway Conclusion Banner */
+.takeaway-banner {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.08) 100%);
+    border-left: 4px solid #F59E0B;
+    border-radius: 0 12px 12px 0;
+    padding: 16px 20px;
+    margin: 16px 0;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.takeaway-title {
+    font-weight: 700;
+    color: #FBBF24;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.takeaway-text {
+    color: #F1F5F9;
+    font-size: 1.02rem;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+/* 7. Specialized Feature Cards */
+.sample-active-status {
+    padding-top: 8px;
+    font-size: 0.88rem;
+    color: #34D399;
+    font-weight: 600;
+}
+
+.overview-card {
+    padding: 18px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.card-title-blue {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #60A5FA;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-body-text {
+    font-size: 0.92rem;
+    color: #CBD5E1;
+    line-height: 1.7;
+}
+
+.audit-card {
+    padding: 22px;
+    border-radius: 16px;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+    min-height: 230px;
+}
+
+.audit-counts-list {
+    font-size: 0.95rem;
+    color: #F1F5F9;
+    line-height: 2.0;
+    margin-bottom: 12px;
+}
+
+.audit-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 12px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+}
+
+.audit-status-success {
+    color: #34D399;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.audit-status-info {
+    color: #38BDF8;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.audit-status-purple {
+    color: #A5B4FC;
+    font-weight: 600;
+}
+
+.query-active-card {
+    border-left: 4px solid #6366F1;
+}
+
+.query-status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.query-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #FFFFFF;
+}
+
+.memory-pill-badge {
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    color: #A5B4FC;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.presentation-deck-card {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.85) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.presentation-deck-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 6px;
+}
+
+.presentation-deck-desc {
+    font-size: 0.9rem;
+    color: #94A3B8;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+/* 8. Modern Buttons & Dynamic Glowing Chat Input */
+.stButton > button {
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.stButton > button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+/* Question Area / Chat Input Soft Glowing Effect (Subtle & Eye-Friendly) */
+@keyframes multi-glow-shift {
+    0% {
+        background-position: 0% 50%;
+        box-shadow: 0 0 16px rgba(99, 102, 241, 0.16), 0 0 32px rgba(6, 182, 212, 0.08);
+    }
+    50% {
+        background-position: 100% 50%;
+        box-shadow: 0 0 18px rgba(168, 85, 247, 0.18), 0 0 36px rgba(236, 72, 153, 0.08);
+    }
+    100% {
+        background-position: 0% 50%;
+        box-shadow: 0 0 16px rgba(99, 102, 241, 0.16), 0 0 32px rgba(6, 182, 212, 0.08);
+    }
+}
+
+div[data-testid="stChatInput"] {
+    position: relative;
+    border-radius: 16px;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0px 4px 18px rgba(0, 0, 0, 0.25);
+    z-index: 1;
+}
+
+/* Soft, subtle multi-colored ambient background backlight glow */
+div[data-testid="stChatInput"]::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(6, 182, 212, 0.7), rgba(168, 85, 247, 0.8), rgba(236, 72, 153, 0.7));
+    background-size: 300% 300%;
+    opacity: 0;
+    filter: blur(20px);
+    z-index: -1;
+    transition: opacity 0.4s ease, filter 0.4s ease;
+    pointer-events: none;
+}
+
+div[data-testid="stChatInput"]:focus-within::before {
+    opacity: 0.3;
+    filter: blur(22px);
+    animation: multi-glow-shift 6s ease infinite alternate;
+}
+
+div[data-testid="stChatInput"]:focus-within {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4), 0 0 18px rgba(99, 102, 241, 0.15);
+}
+
+div[data-testid="stChatInput"] > div {
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(15, 23, 42, 0.94) !important;
+    backdrop-filter: blur(16px) !important;
+    transition: all 0.3s ease !important;
+}
+
+div[data-testid="stChatInput"]:focus-within > div {
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    background: rgba(15, 23, 42, 0.98) !important;
+}
+
+div[data-testid="stChatInput"] textarea {
+    color: #F8FAFC !important;
+    font-size: 0.98rem !important;
+    font-weight: 500 !important;
+}
+
+div[data-testid="stChatInput"] textarea::placeholder {
+    color: #64748B !important;
+}
+
+/* Interactive Text Area & Workbench Inputs Focus Glow */
+.stTextArea textarea, .stTextInput input {
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(15, 23, 42, 0.8) !important;
+    color: #F8FAFC !important;
+    transition: all 0.3s ease !important;
+}
+
+.stTextArea textarea:focus, .stTextInput input:focus {
+    border-color: rgba(99, 102, 241, 0.45) !important;
+    background: rgba(15, 23, 42, 0.95) !important;
+    box-shadow: 0 0 14px rgba(99, 102, 241, 0.18), 0 0 28px rgba(6, 182, 212, 0.1) !important;
+}
+
+/* 9. Clean Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.4);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.6);
+}

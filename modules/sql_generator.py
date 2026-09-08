@@ -198,6 +198,78 @@ def generate_SQL_query(schema_context: str, user_question: str, conversation_his
     return last_valid_response
 
 
+def synthesize_standalone_question(conversation_history: list, current_question: str, generated_sql: str = None) -> str:
+    """
+    Synthesizes a complete, standalone, executive-ready business question from multi-turn 
+    follow-up conversation turns so that subsequent reports, charts, and PowerPoint presentations
+    have full business context rather than fragmented follow-up phrases (e.g. 'filter to top 10').
+    
+    Example:
+    Turn 1: "Which five cities generate the highest revenue?"
+    Turn 2 (Follow-up): "Filter to top 10"
+    Generated SQL: "SELECT city, SUM(total_amount) AS total_revenue FROM orders GROUP BY city ORDER BY total_revenue DESC LIMIT 10;"
+    -> Output: "What are the top 10 cities that generated the highest revenue?"
+    """
+    if not conversation_history:
+        return current_question.strip()
+
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return current_question.strip()
+
+    client = genai.Client(api_key=api_key)
+
+    history_summary = "\n".join([f"Turn {idx+1} Question: {item.get('question', '')}" for idx, item in enumerate(conversation_history)])
+
+    prompt = f"""
+    PREVIOUS CONVERSATION QUESTIONS:
+    {history_summary}
+
+    CURRENT FOLLOW-UP USER INPUT:
+    "{current_question}"
+
+    EXECUTED SQL QUERY FOR THIS TURN:
+    {generated_sql or "N/A"}
+
+    TASK:
+    Rewrite the user's follow-up into a single, complete, professional, and standalone business analytical question that fully expresses the entire context without needing previous turns.
+    
+    Examples:
+    - Prior: "Which five cities generate the highest revenue?" + Follow-up: "now top 10" -> "What are the top 10 cities that generated the highest revenue?"
+    - Prior: "Show total sales by category" + Follow-up: "only for 2024" -> "What is the total sales by product category in 2024?"
+    - Prior: "Top 5 customers" + Follow-up: "include their city and total orders" -> "Who are the top 5 customers with their city and total order count?"
+
+    RULES:
+    1. Output ONLY the single standalone question sentence.
+    2. Do NOT add preamble, quotes, explanations, or notes.
+    """
+
+    system_instruction = (
+        "You are an expert Executive Analytics Editor.\n"
+        "Your job is to merge previous conversation context with the latest follow-up question and output a single, complete, polished business question."
+    )
+
+    models_to_try = get_sorted_flash_models(client)
+    for model_name in models_to_try:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.1,
+                ),
+            )
+            if response and response.text:
+                standalone = response.text.strip().strip('"').strip("'").strip()
+                if standalone:
+                    return standalone
+        except Exception:
+            continue
+
+    return current_question.strip()
+
+
 # Quick standalone test for Conversational Memory feature
 if __name__ == "__main__":
     test_schema = (
