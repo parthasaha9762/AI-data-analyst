@@ -1,0 +1,23 @@
+# Streamlit Enterprise Configuration
+# Disables external telemetry and enforces secure web server defaults
+
+[browser]
+# Disable all usage statistics and external telemetry
+gatherUsageStats = false
+
+[server]
+# Enforce Cross-Site Request Forgery (XSRF) protection
+enableXsrfProtection = true
+
+# Restrict Cross-Origin Resource Sharing for security
+enableCORS = false
+
+# Set maximum file upload size (MB) to prevent memory exhaustion attacks
+maxUploadSize = 200
+
+# Run in headless mode for production server deployments
+headless = true
+
+[client]
+# Show error details in a controlled, clean fashion
+showErrorDetails = "stacktrace"

@@ -20,6 +20,7 @@ Key Application Workflow:
 """
 
 from pathlib import Path
+import gc
 import streamlit as st
 import pandas as pd
 
@@ -54,6 +55,9 @@ from modules.insight_generator import generate_business_insights
 
 # Presentation Generator: Generates 16:9 executive PowerPoint decks (.pptx)
 from modules.presentation_generator import create_powerpoint_deck
+
+# Security & PII Protection Engine: Data privacy masking and SQL sandboxing
+from modules.security_manager import mask_sensitive_dataframe, detect_pii_columns
 
 
 # ------------------------------------------------------------------------------
@@ -165,11 +169,17 @@ sample_info = [
         "title": "🏷️ products.csv",
         "desc": "215 raw records • 5 columns\n(Includes sample nulls & duplicate rows to test data cleaning)",
         "key": "dl_prod_raw"
+    },
+    {
+        "filename": "employee_confidential.csv",
+        "title": "🔒 employee_confidential.csv",
+        "desc": "20 confidential records • 12 columns\n(PII & Security Test: salaries, emails, phones, SSNs, credit cards)",
+        "key": "dl_emp_confidential"
     }
 ]
 
 with st.expander("💡 **Don't have a CSV file? Download or load sample datasets to test features**", expanded=not bool(st.session_state.get("datasets"))):
-    st.caption("Download our raw sample datasets containing real-world quality scenarios or **load all 3 relational tables instantly with 1-click** to test automated preprocessing, SQL joins, interactive charts, and executive presentations:")
+    st.caption("Download our raw sample datasets containing real-world quality scenarios and PII security data, or **load all sample tables instantly with 1-click** to test automated preprocessing, SQL sandboxing, interactive charts, and executive presentations:")
 
     # 1-Click Direct Sample Dataset Loader & Unloader
     is_sample_active = (st.session_state.get("dataset_source") == "sample" and bool(st.session_state.get("datasets")))
@@ -179,6 +189,8 @@ with st.expander("💡 **Don't have a CSV file? Download or load sample datasets
         if is_sample_active:
             # Button to clear the demo workspace and reset database state
             if st.button("🗑️ Remove Sample Datasets", type="secondary", use_container_width=True):
+                if "db_manager" in st.session_state and st.session_state["db_manager"]:
+                    st.session_state["db_manager"].close()
                 st.session_state["datasets"] = {}
                 st.session_state["cleaning_audit"] = {}
                 st.session_state["db_manager"] = DatabaseManager()
@@ -192,11 +204,12 @@ with st.expander("💡 **Don't have a CSV file? Download or load sample datasets
                 st.session_state.pop("active_figure", None)
                 st.session_state.pop("dataset_source", None)
                 st.session_state["show_chart"] = None
-                st.toast("Sample datasets removed!", icon="🗑️")
+                gc.collect()
+                st.toast("Sample datasets removed and RAM purged!", icon="🗑️")
                 st.rerun()
         else:
-            # 1-Click Loader: Reads all 3 sample CSV files, applies data cleaning, and registers in SQLite
-            if st.button("⚡ Load All 3 Sample Datasets (1-Click)", type="primary", use_container_width=True):
+            # 1-Click Loader: Reads all sample CSV files, applies data cleaning, and registers in SQLite
+            if st.button("⚡ Load All Sample Datasets (1-Click)", type="primary", use_container_width=True):
                 for item in sample_info:
                     fpath = sample_directory / item["filename"]
                     if fpath.exists():
@@ -239,22 +252,22 @@ with st.expander("💡 **Don't have a CSV file? Download or load sample datasets
 
                 st.session_state["dataset_source"] = "sample"
                 st.session_state["db_manager"].load_datasets(st.session_state["datasets"])
-                st.toast("✅ All 3 Sample Datasets auto-cleaned and loaded into SQLite!", icon="🚀")
+                st.toast("✅ All Sample Datasets auto-cleaned and loaded into SQLite!", icon="🚀")
                 st.rerun()
 
     with col_info:
         if is_sample_active:
             st.markdown("""
             <div style="padding-top: 8px; font-size: 0.88rem; color: #34D399; font-weight: 600;">
-                🟢 <b>Sample Datasets Active:</b> <code>customers</code>, <code>orders</code>, and <code>products</code> are loaded in SQLite engine.
+                🟢 <b>Sample Datasets Active:</b> <code>customers</code>, <code>orders</code>, <code>products</code>, and <code>employee_confidential</code> are loaded in SQLite engine.
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.caption("⚡ **Instant Demo Mode**: Automatically ingests `customers`, `orders`, and `products`, resolves foreign key joins, and launches the AI analysis engine.")
+            st.caption("⚡ **Instant Demo Mode**: Automatically ingests relational & confidential test tables, resolves schema joins, and launches the AI analysis engine.")
 
     st.markdown("---")
     # Individual dataset download buttons for offline testing
-    cols = st.columns(3)
+    cols = st.columns(len(sample_info))
     for idx, item in enumerate(sample_info):
         full_path = sample_directory / item["filename"]
         with cols[idx]:
@@ -481,8 +494,40 @@ if st.session_state.get("datasets"):
         selected_tbl = st.selectbox("Select table to inspect:", list(datasets.keys()), key="preview_tbl_select")
         if selected_tbl:
             curr_df = datasets[selected_tbl]
-            st.markdown(f"**First 10 sample rows of `{selected_tbl}`:**")
+            pii_cols = detect_pii_columns(curr_df)
+            
+            col_tbl_title, col_pii_toggle = st.columns([2.5, 1.5])
+            with col_tbl_title:
+                st.markdown(f"**First 10 sample rows of `{selected_tbl}`:**")
+            with col_pii_toggle:
+                mask_pii = st.checkbox(
+                    "🔒 Mask PII (Privacy Mode)",
+                    value=True,
+                    key=f"mask_toggle_{selected_tbl}",
+                    help="Automatically masks confidential PII columns (emails, phones, SSNs, credit cards, salaries) to safeguard data privacy."
+                )
+
+            # Display active privacy badge if PII columns are detected
+            if pii_cols:
+                if mask_pii:
+                    st.markdown(f"""
+                    <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(52, 211, 153, 0.35); border-radius: 10px; padding: 8px 14px; margin-bottom: 12px; font-size: 0.88rem; color: #6EE7B7; display: flex; align-items: center; gap: 8px;">
+                        <span>🛡️</span>
+                        <div><b>Enterprise Privacy Shield Active:</b> Confidential data in <code>{', '.join(pii_cols)}</code> is masked in preview. Uncheck toggle above to reveal raw values.</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown(f"""
+                    <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(248, 113, 113, 0.35); border-radius: 10px; padding: 8px 14px; margin-bottom: 12px; font-size: 0.88rem; color: #FCA5A5; display: flex; align-items: center; gap: 8px;">
+                        <span>⚠️</span>
+                        <div><b>Raw Confidential Data Exposed:</b> Masking disabled for <code>{', '.join(pii_cols)}</code>. Enable privacy toggle to protect PII.</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
             sample_df = curr_df.head(10).copy()
+            if mask_pii and pii_cols:
+                sample_df = mask_sensitive_dataframe(sample_df, pii_cols=pii_cols)
+
             sample_df.index = range(1, len(sample_df) + 1)
             st.dataframe(sample_df, use_container_width=True)
 

@@ -27,6 +27,11 @@ from google.genai import types
 # 3. recommend_chart_config(user_question, df): Uses Gemini to determine chart type, axes & executive takeaways
 # 4. generate_plotly_chart(df, chart_config): Renders publication-grade interactive Plotly figures
 
+try:
+    from modules.security_manager import mask_sensitive_dataframe
+except ImportError:
+    from security_manager import mask_sensitive_dataframe
+
 # Module-level cache to remember discovered models across calls
 _CACHED_MODELS = None
 _WORKING_MODEL = None
@@ -36,10 +41,14 @@ def format_dataframe_context(df: pd.DataFrame)-> str:
     """
     Extracts metadata and sample rows from the SQL Result DataFrame 
     and formats them as a clean JSON string for the LLM.
+    Sensitive PII data is automatically masked for enterprise privacy.
     """
     
     if df is None or df.empty:
         return json.dumps({"error": "DataFrame is empty(0 rows)"})
+
+    # Securely mask sample rows
+    masked_sample_df = mask_sensitive_dataframe(df.head(5))
 
     # Build structured metadata dictionary for SQL result dataframe
     metadata = {
@@ -53,8 +62,8 @@ def format_dataframe_context(df: pd.DataFrame)-> str:
             }
             for col in df.columns
         ],
-         # df.head(5) safely takes up to 5 sample rows (or all rows if total_rows <= 5) to prevent unnecessary token usage of Google API and to save costs and time
-         "sample_rows": df.head(5).to_dict(orient = "records")
+         # df.head(5) safely takes up to 5 sample rows with PII masking applied
+         "sample_rows": masked_sample_df.to_dict(orient = "records")
     }
 
     # Convert dictionary into a JSON-formatted string

@@ -6,6 +6,11 @@ import pandas as pd
 from google import genai
 from google.genai import types
 
+try:
+    from modules.security_manager import mask_sensitive_dataframe
+except ImportError:
+    from security_manager import mask_sensitive_dataframe
+
 warnings.filterwarnings("ignore")
 
 # Module-level cache to remember discovered Pro models
@@ -17,16 +22,20 @@ def prepare_statistical_context(df: pd.DataFrame)-> dict:
     """
     Computes mathematical summary statistics and extracts sample data 
     from the SQL result DataFrame to ground the LLM's business analysis.
+    Sensitive PII data in sample rows is automatically masked for enterprise privacy.
     """
 
     if df is None or df.empty:
         return {"error": "DataFrame is empty"}
     
+    # Securely mask sample rows to protect confidential customer/business data
+    masked_sample_df = mask_sensitive_dataframe(df.head(5))
+    
     summary = {
         "total_rows": len(df),
         "columns": list(df.columns),
         "numeric_summary": {},
-        "sample_rows": df.head(5).to_dict(orient= "records")
+        "sample_rows": masked_sample_df.to_dict(orient= "records")
     }
 
     # Analyze numeric columns

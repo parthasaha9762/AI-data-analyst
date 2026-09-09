@@ -2,6 +2,12 @@ import sqlite3
 import pandas as pd 
 
 
+try:
+    from modules.security_manager import is_safe_sql_query
+except ImportError:
+    from security_manager import is_safe_sql_query
+
+
 class DatabaseManager:
     def __init__(self, db_name=":memory:"):
         """
@@ -29,9 +35,13 @@ class DatabaseManager:
 
     def execute_query(self, query: str)-> pd.DataFrame:
         """
-        Executes a SQL query and returns the results directly as a Pandas DataFrame.
+        Executes a SQL query safely and returns the results directly as a Pandas DataFrame.
+        Enforces read-only query sandboxing to protect against malicious injections or modifications.
         """
-        # Automatically rename duplicate columns if present (e.g. JOIN SELECT *)
+        # Security Sandbox Validation
+        is_safe, reason = is_safe_sql_query(query)
+        if not is_safe:
+            raise ValueError(f"Security Sandbox Violation: {reason}")
 
         df = pd.read_sql_query(query, self.conn)
 

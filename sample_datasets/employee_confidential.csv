@@ -1,0 +1,21 @@
+employee_id,full_name,department,job_title,annual_salary,bonus,corporate_email,contact_phone,ssn,credit_card_num,performance_rating,hire_date
+101,Sarah Jenkins,Engineering,VP of Engineering,195000,35000,sarah.jenkins@acmewidgets.corp,+1 (555) 234-8901,123-45-6789,4111222233334444,4.9,2018-03-15
+102,David Chen,Finance,Chief Financial Officer,240000,50000,david.chen@acmewidgets.corp,+1 (555) 345-9012,987-65-4321,5500112233445566,4.8,2017-06-01
+103,Emily Watson,Legal,Lead Legal Counsel,175000,22000,emily.watson@acmewidgets.corp,+1 (555) 456-0123,456-78-1234,378282246310005,4.7,2019-11-10
+104,Marcus Vance,Engineering,Principal Architect,180000,28000,marcus.vance@acmewidgets.corp,+1 (555) 567-1234,321-65-9870,4012888899991234,4.9,2018-08-20
+105,Elena Rostova,Data Science,Lead AI Scientist,165000,25000,elena.rostova@acmewidgets.corp,+1 (555) 678-2345,654-98-3210,4111111111111111,4.9,2020-01-15
+106,Robert Garcia,Marketing,Chief Marketing Officer,190000,30000,robert.garcia@acmewidgets.corp,+1 (555) 789-3456,789-12-3456,5105105105105100,4.5,2019-04-12
+107,Aaliyah Patel,Human Resources,Head of People Operations,145000,18000,aaliyah.patel@acmewidgets.corp,+1 (555) 890-4567,234-56-7890,371449635398431,4.6,2020-09-01
+108,James O'Connor,Sales,VP of Global Sales,210000,65000,james.oconnor@acmewidgets.corp,+1 (555) 901-5678,876-54-3210,4000123456789010,4.8,2016-10-05
+109,Sophia Kim,Engineering,Senior Backend Engineer,140000,15000,sophia.kim@acmewidgets.corp,+1 (555) 012-6789,345-67-8901,4222222222222222,4.4,2021-03-22
+110,Michael Scott,Sales,Regional Sales Director,125000,40000,michael.scott@acmewidgets.corp,+1 (555) 123-7890,901-23-4567,5200888877776666,4.1,2019-02-14
+111,Olivia Taylor,Finance,Senior Financial Analyst,115000,12000,olivia.taylor@acmewidgets.corp,+1 (555) 234-8902,567-89-0123,4333333333333333,4.5,2021-07-19
+112,Lucas Martin,Data Science,Data Engineer II,120000,10000,lucas.martin@acmewidgets.corp,+1 (555) 345-9013,678-90-1234,4444444444444444,4.3,2022-02-01
+113,Isabella Rossi,Marketing,Director of Growth Marketing,135000,20000,isabella.rossi@acmewidgets.corp,+1 (555) 456-0124,789-01-2345,5300999988887777,4.6,2020-11-15
+114,Daniel Wright,Legal,Compliance Specialist,95000,8000,daniel.wright@acmewidgets.corp,+1 (555) 567-1235,890-12-3456,4555555555555555,4.2,2022-08-10
+115,Chloe Bennett,Engineering,DevOps / Cloud Architect,155000,20000,chloe.bennett@acmewidgets.corp,+1 (555) 678-2346,901-23-4568,4666666666666666,4.7,2019-05-30
+116,Ethan Hunt,Human Resources,Senior Recruiter,90000,7000,ethan.hunt@acmewidgets.corp,+1 (555) 789-3457,012-34-5678,5400111122223333,4.0,2021-10-01
+117,Mia Takahashi,Engineering,Frontend Tech Lead,150000,18000,mia.takahashi@acmewidgets.corp,+1 (555) 890-4568,123-45-6780,4777777777777777,4.8,2020-04-18
+118,Alexander Wolf,Finance,Corporate Controller,160000,22000,alex.wolf@acmewidgets.corp,+1 (555) 901-5679,234-56-7891,5500222233334444,4.6,2018-01-22
+119,Ava Robinson,Sales,Enterprise Account Exec,110000,35000,ava.robinson@acmewidgets.corp,+1 (555) 012-6780,345-67-8902,4888888888888888,4.4,2022-05-09
+120,Noah Becker,Data Science,Machine Learning Engineer,138000,14000,noah.becker@acmewidgets.corp,+1 (555) 123-7891,456-78-9012,4999999999999999,4.5,2021-09-14
