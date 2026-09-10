@@ -6,6 +6,11 @@ import warnings
 from google import genai
 from google.genai import types
 
+try:
+    from modules.security_manager import get_gemini_api_key
+except ImportError:
+    from security_manager import get_gemini_api_key
+
 warnings.filterwarnings("ignore")
 
 # Module-level cache to remember discovered models across calls
@@ -106,10 +111,10 @@ def generate_SQL_query(schema_context: str, user_question: str, conversation_his
     """
     global _WORKING_MODEL
 
-    # Fetch Gemini API key and create a client
-    api_key = os.environ.get("GEMINI_API_KEY")
+    # Fetch Gemini API key securely from secrets or environment
+    api_key = get_gemini_api_key()
     if not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable is missing! Please set it before running.")
+        raise ValueError("GEMINI_API_KEY is missing! Please configure it in your .env file or Streamlit secrets.")
 
     client = genai.Client(api_key=api_key)
 
@@ -213,7 +218,7 @@ def synthesize_standalone_question(conversation_history: list, current_question:
     if not conversation_history:
         return current_question.strip()
 
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = get_gemini_api_key()
     if not api_key:
         return current_question.strip()
 

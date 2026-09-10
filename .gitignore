@@ -1,0 +1,69 @@
+# ==============================================================================
+# AI Data Analyst - Security & Environment Ignore Rules (.gitignore)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. API Keys, Credentials & Environment Secrets (NEVER COMMIT)
+# ------------------------------------------------------------------------------
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*
+!.env.example
+
+# Streamlit Secrets (Local & Cloud secrets)
+.streamlit/secrets.toml
+!.streamlit/secrets.toml.example
+
+# Service Account Keys & GCP Credentials
+*.json
+!package*.json
+!tsconfig*.json
+credentials.json
+client_secret*.json
+
+# ------------------------------------------------------------------------------
+# 2. Databases & Persistent Data Stores
+# ------------------------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# ------------------------------------------------------------------------------
+# 3. User Uploads, Proprietary Datasets & Temporary Files
+# ------------------------------------------------------------------------------
+uploads/
+temp/
+tmp/
+*.tmp
+*.log
+scratch/
+exported_decks/
+
+# ------------------------------------------------------------------------------
+# 4. Python Bytecode, Caches & Testing Artifacts
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# ------------------------------------------------------------------------------
+# 5. OS & IDE Configuration Files
+# ------------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo

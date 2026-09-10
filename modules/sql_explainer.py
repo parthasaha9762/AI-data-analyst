@@ -9,6 +9,11 @@ import os
 from google import genai
 from google.genai import types
 
+try:
+    from modules.security_manager import get_gemini_api_key
+except ImportError:
+    from security_manager import get_gemini_api_key
+
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -17,9 +22,9 @@ def explain_SQL_query(schema_context: str, user_question: str, generated_sql: st
     Generates a plain-English explanation of why and how an SQL query was built.
     """
 
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = get_gemini_api_key()
     if not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable is missing! Please set it before running.")
+        raise ValueError("GEMINI_API_KEY is missing! Please configure it in your .env file or Streamlit secrets.")
 
     client = genai.Client(api_key=api_key)
 

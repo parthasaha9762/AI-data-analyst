@@ -7,9 +7,9 @@ from google import genai
 from google.genai import types
 
 try:
-    from modules.security_manager import mask_sensitive_dataframe
+    from modules.security_manager import mask_sensitive_dataframe, get_gemini_api_key
 except ImportError:
-    from security_manager import mask_sensitive_dataframe
+    from security_manager import mask_sensitive_dataframe, get_gemini_api_key
 
 warnings.filterwarnings("ignore")
 
@@ -123,10 +123,10 @@ def generate_business_insights(
     if df is None or df.empty:
         return "⚠️ No data available to generate business insights. The query returned 0 rows."
 
-    # Fetch API Key from environment
-    api_key = os.environ.get("GEMINI_API_KEY")
+    # Fetch API Key securely from secrets or environment
+    api_key = get_gemini_api_key()
     if not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable is missing! Please set it before running.")
+        raise ValueError("GEMINI_API_KEY is missing! Please configure it in your .env file or Streamlit secrets.")
 
     client = genai.Client(api_key=api_key)
 

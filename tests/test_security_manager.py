@@ -17,7 +17,8 @@ from modules.security_manager import (
     is_safe_sql_query,
     detect_pii_columns,
     mask_value,
-    mask_sensitive_dataframe
+    mask_sensitive_dataframe,
+    get_gemini_api_key
 )
 
 
@@ -237,3 +238,32 @@ class TestMaskingFunctions:
 
     def test_mask_none_dataframe(self):
         assert mask_sensitive_dataframe(None) is None
+
+
+# ============================================================================
+# TEST: get_gemini_api_key - API Key Resolution & Protection
+# ============================================================================
+
+class TestGetGeminiApiKey:
+    """Tests secure API key resolution from environment and Streamlit secrets."""
+
+    def test_key_from_environ(self, monkeypatch):
+        monkeypatch.setenv("GEMINI_API_KEY", "AIzaSyTestApiKey12345")
+        key = get_gemini_api_key()
+        assert key == "AIzaSyTestApiKey12345"
+
+    def test_ignores_template_placeholder(self, monkeypatch):
+        monkeypatch.setenv("GEMINI_API_KEY", "your_gemini_api_key_here")
+        key = get_gemini_api_key()
+        assert key == ""
+
+    def test_returns_empty_when_unset(self, monkeypatch):
+        monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+        key = get_gemini_api_key()
+        assert key == ""
+
+    def test_strips_surrounding_whitespace(self, monkeypatch):
+        monkeypatch.setenv("GEMINI_API_KEY", "  AIzaSyCleanKey999  \n")
+        key = get_gemini_api_key()
+        assert key == "AIzaSyCleanKey999"
+

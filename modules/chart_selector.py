@@ -28,9 +28,9 @@ from google.genai import types
 # 4. generate_plotly_chart(df, chart_config): Renders publication-grade interactive Plotly figures
 
 try:
-    from modules.security_manager import mask_sensitive_dataframe
+    from modules.security_manager import mask_sensitive_dataframe, get_gemini_api_key
 except ImportError:
-    from security_manager import mask_sensitive_dataframe
+    from security_manager import mask_sensitive_dataframe, get_gemini_api_key
 
 # Module-level cache to remember discovered models across calls
 _CACHED_MODELS = None
@@ -141,10 +141,10 @@ def recommend_chart_config(user_question: str, df: pd.DataFrame)->dict:
             "reasoning": "The DataFrame is empty (0 rows). So, no chart can be rendered."
         }
 
-    # Fetch API Key from environment
-    api_key = os.environ.get("GEMINI_API_KEY")
+    # Fetch API Key securely from secrets or environment
+    api_key = get_gemini_api_key()
     if not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable is missing!")
+        raise ValueError("GEMINI_API_KEY is missing! Please configure it in your .env file or Streamlit secrets.")
 
     client = genai.Client(api_key=api_key)
 

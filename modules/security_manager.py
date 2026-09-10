@@ -14,9 +14,42 @@ Key Capabilities:
    guaranteeing proprietary data never leaks to external APIs.
 """
 
+import os
 import re
 import pandas as pd
 from typing import Tuple, List, Set
+
+
+def get_gemini_api_key() -> str:
+    """
+    Securely retrieves the Gemini API key from multiple safe sources in order of priority:
+    1. Streamlit Secrets (st.secrets["GEMINI_API_KEY"] if running in Streamlit)
+    2. Environment Variable (.env file via python-dotenv or system environment)
+    
+    Never hardcodes keys, guaranteeing zero credential leaks in version control.
+    """
+    # 1. Check Streamlit secrets (for Streamlit Community Cloud and local secrets)
+    try:
+        import streamlit as st
+        if hasattr(st, "secrets") and "GEMINI_API_KEY" in st.secrets:
+            key = str(st.secrets["GEMINI_API_KEY"]).strip()
+            if key and key != "your_gemini_api_key_here":
+                return key
+    except Exception:
+        pass
+
+    # 2. Check environment variables (.env file via python-dotenv or OS environment)
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
+
+    key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if key and key != "your_gemini_api_key_here":
+        return key
+
+    return ""
 
 
 # Common PII column patterns (case-insensitive substring and token matching)
