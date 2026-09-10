@@ -1,7 +1,7 @@
-# Enterprise Security & Data Privacy Policy
+# Enterprise Security, Data Privacy & Secret Protection Policy
 
 ## 🔒 Executive Summary
-**AI Data Analyst** is built with a **Zero Data Retention / Local Execution First** architecture. The application is engineered to allow organizations to analyze proprietary and confidential datasets (e.g., CSV, tabular records) without exposing raw corporate records to public LLM datasets or persistent cloud storage.
+**AI Data Analyst** is built with a **Zero Data Retention / Local Execution First** architecture. The application is engineered to allow organizations to analyze proprietary and confidential datasets (e.g., CSV, tabular records) without exposing raw corporate records to public LLM datasets or persistent cloud storage, while strictly guarding API keys and credentials.
 
 ---
 
@@ -19,6 +19,8 @@
 │                 │                             │             │
 │                 ▼                             ▼             │
 │       [ Read-Only Execution ]        [ Masked Sample Rows ] │
+│                                                             │
+│  [ API Key Resolver ] ──► [.env / Streamlit Secrets]        │
 └─────────────────┬─────────────────────────────┬─────────────┘
                   │                             │
                   ▼                             ▼
@@ -43,14 +45,20 @@
 ### 2. Automated PII Detection & Sensitive Data Masking
 - The application automatically scans column names and sample values for PII patterns (Emails, Phone Numbers, Social Security Numbers, Credit Cards, Secrets/API Keys, Compensation).
 - Any sample rows sent as grounding context to the LLM are **automatically masked and redacted** (e.g., `a***@domain.com`, `***-***-1234`, `[REDACTED_SECRET]`).
-- Full mathematical aggregations (e.g., `SUM`, `AVG`, `COUNT`) are computed locally.
+- Full mathematical aggregations (e.g., `SUM`, `AVG`, `COUNT`) are computed locally in SQLite.
 
 ### 3. Read-Only SQL Sandboxing
 - All generated SQL queries pass through an automated **Query Sandbox Validator**.
 - Only read-only `SELECT`, `WITH ... SELECT` (CTEs), and `EXPLAIN` queries can be executed.
 - Destructive and modifying commands (`DROP`, `DELETE`, `INSERT`, `UPDATE`, `ALTER`, `ATTACH`, `PRAGMA`, `TRUNCATE`, `EXEC`) are blocked before execution.
 
-### 4. Telemetry-Free Deployment
+### 4. API Key Protection & Secret Isolation
+- **Multi-Source Resolution**: API keys are retrieved from Streamlit Secrets (`st.secrets`), environment files (`.env` via `python-dotenv`), or system environment variables.
+- **Zero Hardcoding**: No credentials or private tokens are hardcoded into codebase source files.
+- **Version Control Exclusions**: Strict `.gitignore` rules prevent `.env`, `.streamlit/secrets.toml`, database files (`*.db`), and uploaded datasets from being committed.
+- **Template Safety**: Only sanitized template files (`.env.example`, `.streamlit/secrets.toml.example`) are checked into Git.
+
+### 5. Telemetry-Free Deployment
 - Streamlit external telemetry and usage tracking are disabled by default (`gatherUsageStats = false`).
 - Cross-Site Request Forgery (`XSRF`) protection and CORS restrictions are enforced in `.streamlit/config.toml`.
 

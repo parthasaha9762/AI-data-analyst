@@ -1,15 +1,16 @@
 # ⚡ AI Data Analyst: Autonomous Enterprise Multi-Table Intelligence Platform
 
-[![Python](https://img.shields.io/badge/Python-3.14%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.60%2B-FF4B4B.svg?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-Flash%20%7C%20Pro-8E75B2.svg?logo=google&logoColor=white)](https://ai.google.dev/)
 [![SQLite](https://img.shields.io/badge/SQLite-In--Memory%20%3Amemory%3A-003B57.svg?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Plotly](https://img.shields.io/badge/Plotly-Interactive%20Studio-3F4F75.svg?logo=plotly&logoColor=white)](https://plotly.com/)
 [![python-pptx](https://img.shields.io/badge/PowerPoint-16%3A9%20Deck%20Export-D24726.svg?logo=microsoftpowerpoint&logoColor=white)](https://python-pptx.readthedocs.io/)
-[![Pytest Tests](https://img.shields.io/badge/Tests-283%2F283%20Passed%20(100%25)-34D399.svg?logo=pytest&logoColor=white)](https://docs.pytest.org/)
+[![Pytest Tests](https://img.shields.io/badge/Tests-287%2F287%20Passed%20(100%25)-34D399.svg?logo=pytest&logoColor=white)](https://docs.pytest.org/)
 [![Enterprise Privacy](https://img.shields.io/badge/Privacy-Zero%20Data%20Retention-success.svg)](#-enterprise-security-network-architecture--data-privacy)
+[![API Key Protection](https://img.shields.io/badge/Secrets-.env%20%7C%20Streamlit%20Secrets-brightgreen.svg)](#-api-key-protection--secret-management)
 
-> **An autonomous, enterprise-grade data intelligence and analytics platform that ingests messy multi-CSV datasets, cleans and models relational schemas, translates natural language into verified SQLite queries, renders interactive Plotly visualizations, delivers executive strategic business insights, and exports boardroom-ready 16:9 PowerPoint briefing decks with built-in PII protection and zero-data-retention security.**
+> **An autonomous, enterprise-grade data intelligence and analytics platform that ingests messy multi-CSV datasets, cleans and models relational schemas, translates natural language into verified SQLite queries, renders interactive Plotly visualizations, delivers executive strategic business insights, and exports boardroom-ready 16:9 PowerPoint briefing decks with built-in PII protection, API-key encryption, and zero-data-retention security.**
 
 ---
 
@@ -20,11 +21,12 @@
 4. [The 11-Step Application Workflow](#-the-11-step-application-workflow)
 5. [Modular Backend Architecture](#-modular-backend-architecture)
 6. [Enterprise Security, Network Architecture & Data Privacy](#-enterprise-security-network-architecture--data-privacy)
-7. [Automated Testing & Production Verification (283 Tests)](#-automated-testing--production-verification-283-tests)
-8. [Sample Datasets Showcase](#-sample-datasets-showcase)
-9. [Installation & Getting Started](#-installation--getting-started)
-10. [Repository Directory Structure](#-repository-directory-structure)
-11. [License & Security Policy](#-license--security-policy)
+7. [API Key Protection & Secret Management](#-api-key-protection--secret-management)
+8. [Automated Testing & Production Verification (287 Tests)](#-automated-testing--production-verification-287-tests)
+9. [Sample Datasets Showcase](#-sample-datasets-showcase)
+10. [Installation & Getting Started](#-installation--getting-started)
+11. [Repository Directory Structure](#-repository-directory-structure)
+12. [License & Security Policy](#-license--security-policy)
 
 ---
 
@@ -38,6 +40,7 @@ Modern organizations generate vast amounts of structured data across disparate C
 - 🧠 **Conversational NL-to-SQL with Semantic Memory:** Leverages Google Gemini models to translate business questions into optimized SQLite queries, handling multi-turn follow-ups, topic shifts, and fuzzy text matching.
 - 🛡️ **Two-Tier Query & Security Sandboxing:** Protects against invalid inputs, keyboard mashing, and non-analytical prompts with 0ms Tier-1 heuristic filtering and Tier-2 semantic validation, while enforcing read-only SQL sandboxing (`SELECT` only).
 - 🔒 **Enterprise PII & Privacy Shield:** Automatically detects and masks sensitive Personally Identifiable Information (emails, phone numbers, SSNs, credit cards, compensation, passwords) in previews and LLM prompts.
+- 🔑 **Air-Tight API Key Protection:** Reads Gemini credentials safely from `.env` or Streamlit Secrets with zero hardcoded keys and strict `.gitignore` rules that prevent credential leaks.
 - 📊 **Intelligent Plotly Visualization Studio:** Automatically determines optimal chart types (Bar, Line, Donut/Pie, Scatter, Histogram) and renders interactive Plotly figures complete with executive takeaway banners.
 - 💡 **Executive Business Insights & Growth Actions:** Employs Gemini Pro models to deliver a structured 3-block consulting analysis (*The Big Picture*, *Where We Can Grow*, and *Action Plan* with quantified metric impact).
 - 💼 **Boardroom PowerPoint Presentation Export:** Synthesizes the analysis, data lineage, charts, and executive insights into a view-only protected, 16:9 widescreen `.pptx` briefing deck.
@@ -57,11 +60,12 @@ flowchart TD
         UI7 --> UI8[Step 11: 16:9 PowerPoint Briefing Deck Export Hub]
     end
 
-    subgraph Security_And_Privacy ["🛡️ Enterprise Security & Privacy Layer (security_manager.py)"]
-        SEC1[PII Detection Engine: Regex & Heuristics]
-        SEC2[Sensitive Data Masking: Emails, Phones, SSNs, Cards, Salaries]
-        SEC3[SQL Sandbox Guard: Strict Read-Only Verification]
-        SEC4[Ephemeral RAM Purge: gc.collect + Connection Cleanup]
+    subgraph Security_And_Secrets ["🛡️ Enterprise Security & Secret Management (security_manager.py)"]
+        SEC1[API Key Resolver: st.secrets -> .env -> OS Env]
+        SEC2[PII Detection Engine: Regex & Heuristics]
+        SEC3[Sensitive Data Masking: Emails, Phones, SSNs, Cards, Salaries]
+        SEC4[SQL Sandbox Guard: Strict Read-Only SELECT Verification]
+        SEC5[Ephemeral RAM Purge: gc.collect + Connection Cleanup]
     end
 
     subgraph Preprocessing_And_DB ["🧹 Automated Preprocessing & In-Memory SQLite"]
@@ -90,18 +94,19 @@ flowchart TD
     end
 
     %% Security Connections
-    P3 --> SEC3
-    SEC3 -->|Validated Safe Query| P3
-    P3 -->|Query Results DataFrame| SEC1
-    SEC1 --> SEC2
-    SEC2 -->|Masked Sample Data + Aggregates| L3
-    SEC2 -->|Masked Sample Data + Aggregates| L4
+    SEC1 --> L1 & L2 & L3 & L4
+    P3 --> SEC4
+    SEC4 -->|Validated Safe Query| P3
+    P3 -->|Query Results DataFrame| SEC2
+    SEC2 --> SEC3
+    SEC3 -->|Masked Sample Data + Aggregates| L3
+    SEC3 -->|Masked Sample Data + Aggregates| L4
 
     %% Workflow Connections
     R3 -.->|Schema Context| L1
     R3 -.->|Schema Context| L2
     UI3 --> L1
-    L1 -->|Generated SQL| SEC3
+    L1 -->|Generated SQL| SEC4
     P3 -->|Query Results| UI5
     L2 -->|Explanations| UI5
     L3 -->|Chart Config| UI6
@@ -122,8 +127,9 @@ flowchart TD
 | **AI / LLMs** | Google GenAI SDK | `2.19.0` | Dynamic discovery of Gemini 2.5 Flash and Pro models for NL-to-SQL and strategic business insights. |
 | **Data Visualization** | Plotly | `7.0.0` | Publication-grade interactive figures (Bar, Line, Donut, Scatter, Histogram) with dark theme styling. |
 | **Briefing Export** | python-pptx | `1.0.2` | Native 16:9 widescreen PowerPoint presentation generation with OpenXML view-only metadata injection. |
+| **Secret Management** | python-dotenv | `1.0.1` | Secure environment loading from `.env` and `st.secrets` without hardcoded keys. |
 | **Security & Privacy** | Custom Engine | Built-in | PII detection regex, data masking, SQL sandboxing, XSRF protection, and zero telemetry. |
-| **Automated Testing** | Pytest | `8.x` | 283 unit and integration tests verifying all modules and edge cases offline without API dependency. |
+| **Automated Testing** | Pytest | `9.1.1` | 287 unit and integration tests verifying all modules and edge cases offline without API dependency. |
 
 ---
 
@@ -196,7 +202,7 @@ All core logic is cleanly partitioned into 11 decoupled, production-tested modul
 
 ```
 modules/
-├── security_manager.py           # PII detection, sensitive data masking & SQL sandboxing
+├── security_manager.py           # PII detection, sensitive data masking, SQL sandboxing & API key resolver
 ├── database_manager.py           # In-memory SQLite lifecycle, query execution & duplicate column renaming
 ├── schema_metadata_generator.py  # Pandas inspection, column metadata & candidate PK discovery
 ├── releationship_detector.py     # 4-rule heuristic FK->PK relational link inference & scoring
@@ -227,6 +233,8 @@ Enterprise organizations handling confidential financial, customer, or employee 
 │                 │                             │             │
 │                 ▼                             ▼             │
 │       [ Read-Only Execution ]        [ Masked Sample Rows ] │
+│                                                             │
+│  [ API Key Resolver ] ──► [.env / Streamlit Secrets]        │
 └─────────────────┬─────────────────────────────┬─────────────┘
                   │                             │
                   ▼                             ▼
@@ -271,17 +279,40 @@ maxUploadSize = 200         # Prevents memory exhaustion attacks
 headless = true             # Production server deployment mode
 ```
 
-### 5. Enterprise Deployment Modes
+---
 
-| Mode | Provider | Compliance & Security Highlights |
-| :--- | :--- | :--- |
-| **Standard Cloud** | Google Gemini API | Schema metadata transmitted; raw dataset stays local in RAM. |
-| **Enterprise Cloud** | Google Cloud Vertex AI | SOC-2, ISO 27001, HIPAA compliant. Google does not train on customer prompts. |
-| **Air-Gapped / On-Prem** | Local Ollama / vLLM (Llama 3, DeepSeek) | 100% of data, metadata, and LLM inferences remain inside the internal corporate network. |
+## 🔑 API Key Protection & Secret Management
+
+To guarantee that private API keys and credentials are never hardcoded or leaked to version control:
+
+### 1. Multi-Source Safe Key Resolution
+[`modules/security_manager.py`](file:///c:/Users/dextr/OneDrive/Desktop/Data%20Analytics/Project/AI%20Data%20analyzer/AI%20data%20analyst/modules/security_manager.py) (`get_gemini_api_key()`) resolves the API key in safe priority order:
+1. **Streamlit Secrets** (`st.secrets["GEMINI_API_KEY"]`) — Used in Streamlit Community Cloud and local `.streamlit/secrets.toml`.
+2. **Environment Variable** (`.env` file via `python-dotenv` or operating system environment).
+3. **UI Sidebar Input** — Clean fallback if running for the first time without configuration.
+
+### 2. Comprehensive `.gitignore` Protection
+[`.gitignore`](file:///c:/Users/dextr/OneDrive/Desktop/Data%20Analytics/Project/AI%20Data%20analyzer/AI%20data%20analyst/.gitignore) strictly excludes all credential, database, and upload artifacts from Git commits:
+```gitignore
+# Secret Keys & Environment
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+!.streamlit/secrets.toml.example
+
+# Databases & User Data
+*.db
+*.sqlite
+*.sqlite3
+uploads/
+temp/
+*.log
+```
 
 ---
 
-## 🧪 Automated Testing & Production Verification (283 Tests)
+## 🧪 Automated Testing & Production Verification (287 Tests)
 
 The entire platform is backed by a production-ready test suite running offline with zero API dependencies.
 
@@ -293,20 +324,21 @@ python -m pytest tests/ -v
 ### Test Coverage Summary:
 ```
 ================================ test session starts ================================
-collected 283 items
+platform win32 -- Python 3.14.3, pytest-9.1.1, pluggy-1.6.0
+collected 287 items
 
-tests/test_database_manager.py .......... [ 25 Passed ]
-tests/test_schema_metadata_generator.py . [ 22 Passed ]
-tests/test_relationship_detector.py ..... [ 21 Passed ]
-tests/test_schema_context.py ............ [ 23 Passed ]
-tests/test_query_validator.py ........... [ 40 Passed ]
+tests/test_database_manager.py .......... [ 27 Passed ]
+tests/test_schema_metadata_generator.py . [ 23 Passed ]
+tests/test_relationship_detector.py ..... [ 30 Passed ]
+tests/test_schema_context.py ............ [ 24 Passed ]
+tests/test_query_validator.py ........... [ 43 Passed ]
 tests/test_sql_generator.py ............. [ 22 Passed ]
 tests/test_chart_selector.py ............ [ 28 Passed ]
 tests/test_insight_generator.py ......... [ 17 Passed ]
-tests/test_presentation_generator.py .... [ 30 Passed ]
-tests/test_security_manager.py .......... [ 37 Passed ]
+tests/test_presentation_generator.py .... [ 32 Passed ]
+tests/test_security_manager.py .......... [ 41 Passed ]
 
-======================= 283 passed, 1 warning in 8.23s =======================
+======================= 287 passed, 1 warning in 10.91s =======================
 ```
 
 ---
@@ -332,26 +364,27 @@ Pre-built datasets located in [`sample_datasets/`](file:///c:/Users/dextr/OneDri
 
 ### Step 1: Clone Repository
 ```bash
-git clone https://github.com/your-username/ai-data-analyst.git
-cd "ai-data-analyst/AI data analyst"
+git clone https://github.com/parthasaha9762/AI-data-analyst.git
+cd "AI-data-analyst/AI data analyst"
 ```
 
 ### Step 2: Install Dependencies
 ```bash
 pip install -r requirements.txt
-# Or manually install core packages:
-pip install streamlit pandas plotly python-pptx google-genai pytest
 ```
 
 ### Step 3: Configure Environment Variables
-Set your Gemini API key in your terminal or create a `.env` file:
+Copy the template and add your API key:
 ```bash
-# Windows PowerShell
-$env:GEMINI_API_KEY="your_api_key_here"
-
-# Linux / macOS
-export GEMINI_API_KEY="your_api_key_here"
+# Copy template to .env
+cp .env.example .env
 ```
+Edit `.env` and set:
+```env
+GEMINI_API_KEY=AIzaSyYourActualKeyHere
+```
+
+*(Alternatively, create `.streamlit/secrets.toml` with `GEMINI_API_KEY = "AIzaSy..."`)*
 
 ### Step 4: Launch the Application
 ```bash
@@ -364,10 +397,11 @@ The application will open automatically in your browser at `http://localhost:850
 ## 📁 Repository Directory Structure
 
 ```
-AI Data analyzer/
+AI-data-analyst/
 └── AI data analyst/
     ├── .streamlit/
-    │   └── config.toml               # Hardened Streamlit enterprise configuration
+    │   ├── config.toml               # Hardened Streamlit enterprise configuration
+    │   └── secrets.toml.example      # Streamlit secrets configuration template
     ├── assets/
     │   └── style.css                 # Custom glassmorphism UI & keyframe animations
     ├── modules/
@@ -380,7 +414,7 @@ AI Data analyzer/
     │   ├── releationship_detector.py # 4-rule FK->PK heuristic relationship detector
     │   ├── schema_context.py         # Formats relational schemas for LLM prompts
     │   ├── schema_metadata_generator.py # Metadata extractor & candidate PK detector
-    │   ├── security_manager.py       # PII detection, masking engine & SQL validator
+    │   ├── security_manager.py       # PII detection, masking engine, SQL validator & key resolver
     │   ├── sql_explainer.py          # Plain-English non-technical SQL breakdown
     │   └── sql_generator.py          # Gemini NL-to-SQL generator with multi-turn memory
     ├── sample_datasets/
@@ -399,11 +433,14 @@ AI Data analyzer/
     │   ├── test_relationship_detector.py # FK->PK relationship scoring tests
     │   ├── test_schema_context.py    # Schema formatting & type mapping tests
     │   ├── test_schema_metadata_generator.py # Column metadata & PK tests
-    │   ├── test_security_manager.py  # SQL sandbox, PII detection & masking tests
+    │   ├── test_security_manager.py  # SQL sandbox, PII detection, masking & API key tests
     │   └── test_sql_generator.py     # SQL parsing, intent & fence stripping tests
+    ├── .env.example                  # Environment configuration template
+    ├── .gitignore                    # Enterprise git ignore security rules
     ├── app.py                        # Main Streamlit UI orchestration application
     ├── pytest.ini                    # Pytest configuration file
     ├── README.md                     # Complete platform documentation
+    ├── requirements.txt              # Production dependency specifications
     └── SECURITY.md                   # Enterprise data privacy & security disclosure
 ```
 
