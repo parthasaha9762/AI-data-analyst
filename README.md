@@ -1,5 +1,7 @@
-# ⚡ AI Data Analyst: Autonomous Enterprise Multi-Table Intelligence Platform
+# ⚡ AI Data Analyst — Autonomous Multi-Table Analytics Platform
 
+[![Live Demo](https://img.shields.io/badge/Streamlit%20App-Live%20Demo-FF4B4B.svg?logo=streamlit&logoColor=white)](https://ai-data-analyst-fj6jkrwpnho3u2agldqhkw.streamlit.app/)
+[![Deployed on Streamlit Cloud](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ai-data-analyst-fj6jkrwpnho3u2agldqhkw.streamlit.app/)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.60%2B-FF4B4B.svg?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-Flash%20%7C%20Pro-8E75B2.svg?logo=google&logoColor=white)](https://ai.google.dev/)
@@ -7,26 +9,54 @@
 [![Plotly](https://img.shields.io/badge/Plotly-Interactive%20Studio-3F4F75.svg?logo=plotly&logoColor=white)](https://plotly.com/)
 [![python-pptx](https://img.shields.io/badge/PowerPoint-16%3A9%20Deck%20Export-D24726.svg?logo=microsoftpowerpoint&logoColor=white)](https://python-pptx.readthedocs.io/)
 [![Pytest Tests](https://img.shields.io/badge/Tests-287%2F287%20Passed%20(100%25)-34D399.svg?logo=pytest&logoColor=white)](https://docs.pytest.org/)
-[![Enterprise Privacy](https://img.shields.io/badge/Privacy-Zero%20Data%20Retention-success.svg)](#-enterprise-security-network-architecture--data-privacy)
+[![Privacy-Focused](https://img.shields.io/badge/Privacy-Privacy--Focused%20Data%20Handling-success.svg)](#-security-architecture--privacy-focused-data-handling)
 [![API Key Protection](https://img.shields.io/badge/Secrets-.env%20%7C%20Streamlit%20Secrets-brightgreen.svg)](#-api-key-protection--secret-management)
 
-> **An autonomous, enterprise-grade data intelligence and analytics platform that ingests messy multi-CSV datasets, cleans and models relational schemas, translates natural language into verified SQLite queries, renders interactive Plotly visualizations, delivers executive strategic business insights, and exports boardroom-ready 16:9 PowerPoint briefing decks with built-in PII protection, API-key encryption, and zero-data-retention security.**
+> 🚀 **Live Demo Application**: **[https://ai-data-analyst-fj6jkrwpnho3u2agldqhkw.streamlit.app/](https://ai-data-analyst-fj6jkrwpnho3u2agldqhkw.streamlit.app/)**  
+> *Launch directly in your web browser — test instantly with 1-click sample datasets or upload your own multi-table CSV files!*
+
+> **An autonomous data analytics platform featuring a production-oriented architecture with security controls, validation layers, automated testing, and cloud deployment. Ingests messy multi-CSV datasets, cleans and models relational schemas, translates natural language into verified SQLite queries, renders interactive Plotly visualizations, delivers strategic business insights, and exports structured 16:9 PowerPoint briefing decks with built-in PII masking and credential protection.**
 
 ---
 
 ## 📑 Table of Contents
-1. [Executive Summary & Core Value Proposition](#-executive-summary--core-value-proposition)
-2. [End-to-End System Architecture](#-end-to-end-system-architecture)
-3. [Technology Stack & Frameworks](#-technology-stack--frameworks)
-4. [The 11-Step Application Workflow](#-the-11-step-application-workflow)
-5. [Modular Backend Architecture](#-modular-backend-architecture)
-6. [Enterprise Security, Network Architecture & Data Privacy](#-enterprise-security-network-architecture--data-privacy)
-7. [API Key Protection & Secret Management](#-api-key-protection--secret-management)
-8. [Automated Testing & Production Verification (287 Tests)](#-automated-testing--production-verification-287-tests)
-9. [Sample Datasets Showcase](#-sample-datasets-showcase)
-10. [Installation & Getting Started](#-installation--getting-started)
-11. [Repository Directory Structure](#-repository-directory-structure)
-12. [License & Security Policy](#-license--security-policy)
+1. [🌐 Live Demo & Cloud Deployment](#-live-demo--cloud-deployment)
+2. [Executive Summary & Core Value Proposition](#-executive-summary--core-value-proposition)
+3. [End-to-End System Architecture](#-end-to-end-system-architecture)
+4. [Technology Stack & Frameworks](#-technology-stack--frameworks)
+5. [The 11-Step Application Workflow](#-the-11-step-application-workflow)
+6. [Modular Backend Architecture](#-modular-backend-architecture)
+7. [Security Architecture & Privacy-Focused Data Handling](#-security-architecture--privacy-focused-data-handling)
+8. [API Key Protection & Secret Management](#-api-key-protection--secret-management)
+9. [Automated Testing & Architecture Verification (287 Tests)](#-automated-testing--architecture-verification-287-tests)
+10. [Sample Datasets Showcase](#-sample-datasets-showcase)
+11. [Installation & Getting Started](#-installation--getting-started)
+12. [Repository Directory Structure](#-repository-directory-structure)
+13. [License & Security Policy](#-license--security-policy)
+
+---
+
+## 🌐 Live Demo & Cloud Deployment
+
+The platform is deployed and accessible on **Streamlit Community Cloud**:
+
+<div align="center">
+
+### 🔗 **[Launch AI Data Analyst Live Demo](https://ai-data-analyst-fj6jkrwpnho3u2agldqhkw.streamlit.app/)**
+
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ai-data-analyst-fj6jkrwpnho3u2agldqhkw.streamlit.app/)
+
+</div>
+
+### 🌟 Key Capabilities in the Live Demo:
+- ⚡ **Instant 1-Click Showcase**: Test relational queries immediately with pre-loaded datasets (`customers`, `orders`, `products`, `employee_confidential`).
+- 📁 **Multi-CSV Ingestion**: Upload custom datasets to automatically trigger automated data cleaning, duplicate elimination, and null imputation.
+- 🔗 **Autonomous Relational Discovery**: Heuristically models Foreign Key $\to$ Primary Key relationships across your uploaded tables.
+- 💬 **Conversational NL-to-SQL**: Ask natural language business questions with multi-turn memory and instant SQLite execution.
+- 📊 **Interactive Plotly Visualization Studio**: Auto-generates publication-ready charts (Bar, Line, Donut, Scatter, Histogram) with executive takeaways.
+- 💡 **Executive Strategic Insights (AI Pro)**: Produces consulting-grade 3-block analytical briefs (*The Big Picture*, *Where We Can Grow*, and *Action Plan*).
+- 💼 **Boardroom 16:9 PowerPoint Deck Export**: Downloads protected `.pptx` presentations containing scorecard metrics, SQL lineage, chart snapshots, and strategic initiatives.
+- 🔒 **Privacy-Focused Data Handling**: Raw uploaded files are processed in memory and are not persisted by the application. Data samples sent for LLM grounding are masked to reduce sensitive-data exposure.
 
 ---
 
@@ -34,13 +64,13 @@
 
 Modern organizations generate vast amounts of structured data across disparate CSV files and relational tables. Non-technical decision-makers often struggle to extract timely insights, while data engineering teams spend hours writing boilerplate cleaning scripts, crafting complex SQL queries, creating BI dashboards, and preparing executive briefing decks.
 
-**AI Data Analyst** resolves this friction by automating the full end-to-end data intelligence lifecycle:
+**AI Data Analyst** resolves this friction through a production-oriented architecture with security controls, validation layers, automated testing, and cloud deployment:
 - 🧹 **Automated Data Quality & Preprocessing:** Ingests multiple raw CSV files, purges duplicates, imputes missing values based on data types (`0` for numeric, `'N/A'` for text), and records detailed audit health metrics.
 - 🔗 **Heuristic Relational Discovery:** Discovers Foreign Key $\to$ Primary Key connections across tables without manual configuration, using column name matching, data type compatibility, uniqueness testing, and set-based value overlap scoring.
 - 🧠 **Conversational NL-to-SQL with Semantic Memory:** Leverages Google Gemini models to translate business questions into optimized SQLite queries, handling multi-turn follow-ups, topic shifts, and fuzzy text matching.
 - 🛡️ **Two-Tier Query & Security Sandboxing:** Protects against invalid inputs, keyboard mashing, and non-analytical prompts with 0ms Tier-1 heuristic filtering and Tier-2 semantic validation, while enforcing read-only SQL sandboxing (`SELECT` only).
-- 🔒 **Enterprise PII & Privacy Shield:** Automatically detects and masks sensitive Personally Identifiable Information (emails, phone numbers, SSNs, credit cards, compensation, passwords) in previews and LLM prompts.
-- 🔑 **Air-Tight API Key Protection:** Reads Gemini credentials safely from `.env` or Streamlit Secrets with zero hardcoded keys and strict `.gitignore` rules that prevent credential leaks.
+- 🔒 **PII & Privacy Protection:** Automatically detects and masks sensitive Personally Identifiable Information (emails, phone numbers, SSNs, credit cards, compensation, passwords) in previews and LLM prompts. Raw uploaded files are processed in memory and are not persisted by the application. Data samples sent for LLM grounding are masked to reduce sensitive-data exposure.
+- 🔑 **API Key Protection:** Reads Gemini credentials safely from `.env` or Streamlit Secrets with strict `.gitignore` rules that prevent credential leaks.
 - 📊 **Intelligent Plotly Visualization Studio:** Automatically determines optimal chart types (Bar, Line, Donut/Pie, Scatter, Histogram) and renders interactive Plotly figures complete with executive takeaway banners.
 - 💡 **Executive Business Insights & Growth Actions:** Employs Gemini Pro models to deliver a structured 3-block consulting analysis (*The Big Picture*, *Where We Can Grow*, and *Action Plan* with quantified metric impact).
 - 💼 **Boardroom PowerPoint Presentation Export:** Synthesizes the analysis, data lineage, charts, and executive insights into a view-only protected, 16:9 widescreen `.pptx` briefing deck.
@@ -60,7 +90,7 @@ flowchart TD
         UI7 --> UI8[Step 11: 16:9 PowerPoint Briefing Deck Export Hub]
     end
 
-    subgraph Security_And_Secrets ["🛡️ Enterprise Security & Secret Management (security_manager.py)"]
+    subgraph Security_And_Secrets ["🛡️ Security & Secret Management (security_manager.py)"]
         SEC1[API Key Resolver: st.secrets -> .env -> OS Env]
         SEC2[PII Detection Engine: Regex & Heuristics]
         SEC3[Sensitive Data Masking: Emails, Phones, SSNs, Cards, Salaries]
@@ -80,7 +110,7 @@ flowchart TD
         R2 --> R3[schema_context: Build LLM-Ready Unified Schema Prompt]
     end
 
-    subgraph LLM_Cloud_Layer ["🧠 Google Gemini AI Engine (Zero-Retention)"]
+    subgraph LLM_Cloud_Layer ["🧠 Google Gemini AI Engine"]
         L1[sql_generator: Gemini Flash NL-to-SQL + Conversational Memory]
         L2[sql_explainer: Plain-English Query Breakdown]
         L3[chart_selector: Optimal Chart Mapping & Takeaway Extraction]
@@ -128,7 +158,7 @@ flowchart TD
 | **Data Visualization** | Plotly | `7.0.0` | Publication-grade interactive figures (Bar, Line, Donut, Scatter, Histogram) with dark theme styling. |
 | **Briefing Export** | python-pptx | `1.0.2` | Native 16:9 widescreen PowerPoint presentation generation with OpenXML view-only metadata injection. |
 | **Secret Management** | python-dotenv | `1.0.1` | Secure environment loading from `.env` and `st.secrets` without hardcoded keys. |
-| **Security & Privacy** | Custom Engine | Built-in | PII detection regex, data masking, SQL sandboxing, XSRF protection, and zero telemetry. |
+| **Security & Privacy** | Custom Engine | Built-in | PII detection regex, data masking, SQL sandboxing, XSRF protection, and privacy controls. |
 | **Automated Testing** | Pytest | `9.1.1` | 287 unit and integration tests verifying all modules and edge cases offline without API dependency. |
 
 ---
@@ -171,7 +201,7 @@ Accepts single or multi-file CSV uploads. Automatically analyzes missing values 
 Displays high-level KPI tiles (Active Tables, Total Rows, Cleaned Values, Total Features) and provides an interactive 5-tab studio:
 1. **📁 Tables & Dimensions**: Row/column counts, memory consumption, column lists.
 2. **🧹 Data Quality Audit Log**: Per-table breakdown of imputed nulls and purged duplicates.
-3. **🔍 Interactive Data Explorer**: 10-row preview with **Enterprise Privacy Shield** and PII masking toggle.
+3. **🔍 Interactive Data Explorer**: 10-row preview with **Privacy Shield** and PII masking toggle.
 4. **📈 Statistical Distributions**: Summary statistics (`mean`, `std`, `min`, `max`, `quartiles`) across numeric columns.
 5. **🤖 AI Schema Context (for LLM)**: Formatted schema string passed to Gemini.
 
@@ -198,7 +228,7 @@ Generates an executive 16:9 widescreen PowerPoint deck containing a Cover slide,
 
 ## 📦 Modular Backend Architecture
 
-All core logic is cleanly partitioned into 11 decoupled, production-tested modules in [`modules/`](file:///c:/Users/dextr/OneDrive/Desktop/Data%20Analytics/Project/AI%20Data%20analyzer/AI%20data%20analyst/modules/):
+All core logic is cleanly partitioned into 11 decoupled, well-tested modules in [`modules/`](file:///c:/Users/dextr/OneDrive/Desktop/Data%20Analytics/Project/AI%20Data%20analyzer/AI%20data%20analyst/modules/):
 
 ```
 modules/
@@ -217,13 +247,13 @@ modules/
 
 ---
 
-## 🔒 Enterprise Security, Network Architecture & Data Privacy
+## 🔒 Security Architecture & Privacy-Focused Data Handling
 
-Enterprise organizations handling confidential financial, customer, or employee data require strict data isolation and zero-leakage guarantees.
+Organizations handling confidential financial, customer, or employee data require robust data isolation and privacy controls. Raw uploaded files are processed in memory and are not persisted by the application. Data samples sent for LLM grounding are masked to reduce sensitive-data exposure.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│             LOCAL MACHINE / ENTERPRISE VPC RAM              │
+│                 APPLICATION RUNTIME IN-MEMORY RAM           │
 │                                                             │
 │  [ Uploaded CSVs ] ──► [ In-Memory SQLite (:memory:) ]      │
 │                                │                            │
@@ -243,18 +273,18 @@ Enterprise organizations handling confidential financial, customer, or employee 
        [ Local PPTX Export   ]                  ▼
                                      ┌─────────────────────────┐
                                      │  GOOGLE GEMINI / VERTEX │
-                                     │  (Zero-Shot SQL Gen)    │
+                                     │  (NL-to-SQL Inference)  │
                                      └─────────────────────────┘
 ```
 
 ### 1. In-Memory Ephemeral Storage
-- All uploaded datasets reside **strictly in RAM (`:memory:`)** inside the SQLite connection.
-- Data is **never written to disk**, temporary files, or external databases.
+- Raw uploaded files are processed in memory and are not persisted by the application.
+- All uploaded datasets reside **strictly in RAM (`:memory:`)** inside the SQLite connection and are never written to disk, temporary files, or external databases.
 - Workspace resets explicitly invoke connection teardown (`.close()`) and Python garbage collection (`gc.collect()`).
 
 ### 2. Automated PII Detection & Masking
 - [`modules/security_manager.py`](file:///c:/Users/dextr/OneDrive/Desktop/Data%20Analytics/Project/AI%20Data%20analyzer/AI%20data%20analyst/modules/security_manager.py) scans column names and sample values for PII patterns.
-- Grounding sample rows sent to Gemini are **automatically masked**:
+- Data samples sent for LLM grounding are **automatically masked**:
   - `john.doe@company.com` $\to$ `j***@company.com`
   - `+1 (555) 234-8901` $\to$ `***-***-****`
   - `123-45-6789` $\to$ `***-**-****`
@@ -270,13 +300,13 @@ Enterprise organizations handling confidential financial, customer, or employee 
 Configured via [`.streamlit/config.toml`](file:///c:/Users/dextr/OneDrive/Desktop/Data%20Analytics/Project/AI%20Data%20analyzer/AI%20data%20analyst/.streamlit/config.toml):
 ```toml
 [browser]
-gatherUsageStats = false    # Disables all external telemetry
+gatherUsageStats = false    # Disables external telemetry
 
 [server]
 enableXsrfProtection = true # Protects against Cross-Site Request Forgery
 enableCORS = false          # Restricts unauthorized cross-origin requests
 maxUploadSize = 200         # Prevents memory exhaustion attacks
-headless = true             # Production server deployment mode
+headless = true             # Server deployment mode
 ```
 
 ---
@@ -312,9 +342,9 @@ temp/
 
 ---
 
-## 🧪 Automated Testing & Production Verification (287 Tests)
+## 🧪 Automated Testing & Architecture Verification (287 Tests)
 
-The entire platform is backed by a production-ready test suite running offline with zero API dependencies.
+The platform is backed by a comprehensive automated test suite with 287 unit and integration tests running offline with mock data and zero API dependencies.
 
 ```bash
 # Run the complete test suite
@@ -338,7 +368,7 @@ tests/test_insight_generator.py ......... [ 17 Passed ]
 tests/test_presentation_generator.py .... [ 32 Passed ]
 tests/test_security_manager.py .......... [ 41 Passed ]
 
-======================= 287 passed, 1 warning in 10.91s =======================
+======================= 287 passed, 1 warning in 17.85s =======================
 ```
 
 ---
@@ -357,6 +387,8 @@ Pre-built datasets located in [`sample_datasets/`](file:///c:/Users/dextr/OneDri
 ---
 
 ## 🚀 Installation & Getting Started
+
+> 💡 **Live Demo Available**: If you prefer not to install and run locally, you can explore the live demo directly in your browser: **[ai-data-analyst.streamlit.app](https://ai-data-analyst-fj6jkrwpnho3u2agldqhkw.streamlit.app/)**
 
 ### Prerequisites
 - Python **3.10 to 3.14**
@@ -436,17 +468,17 @@ AI-data-analyst/
     │   ├── test_security_manager.py  # SQL sandbox, PII detection, masking & API key tests
     │   └── test_sql_generator.py     # SQL parsing, intent & fence stripping tests
     ├── .env.example                  # Environment configuration template
-    ├── .gitignore                    # Enterprise git ignore security rules
+    ├── .gitignore                    # Git ignore security rules
     ├── app.py                        # Main Streamlit UI orchestration application
     ├── pytest.ini                    # Pytest configuration file
     ├── README.md                     # Complete platform documentation
     ├── requirements.txt              # Production dependency specifications
-    └── SECURITY.md                   # Enterprise data privacy & security disclosure
+    └── SECURITY.md                   # Data privacy & security disclosure
 ```
 
 ---
 
 ## 📜 License & Security Policy
 
-- **License**: MIT License. Free for personal, commercial, and enterprise use.
-- **Security Policy**: For full details on data privacy compliance, SOC-2 readiness, and vulnerability disclosures, refer to [`SECURITY.md`](file:///c:/Users/dextr/OneDrive/Desktop/Data%20Analytics/Project/AI%20Data%20analyzer/AI%20data%20analyst/SECURITY.md).
+- **License**: MIT License. Free for personal, commercial, and educational use.
+- **Security Policy**: For full details on data privacy, security practices, and vulnerability disclosures, refer to [`SECURITY.md`](file:///c:/Users/dextr/OneDrive/Desktop/Data%20Analytics/Project/AI%20Data%20analyzer/AI%20data%20analyst/SECURITY.md).

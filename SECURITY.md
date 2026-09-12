@@ -1,7 +1,7 @@
-# Enterprise Security, Data Privacy & Secret Protection Policy
+# Security, Data Privacy & Secret Protection Policy
 
 ## 🔒 Executive Summary
-**AI Data Analyst** is built with a **Zero Data Retention / Local Execution First** architecture. The application is engineered to allow organizations to analyze proprietary and confidential datasets (e.g., CSV, tabular records) without exposing raw corporate records to public LLM datasets or persistent cloud storage, while strictly guarding API keys and credentials.
+**AI Data Analyst** is built with a **Privacy-Focused, In-Memory Execution Architecture**. Raw uploaded files are processed in memory and are not persisted by the application. Data samples sent for LLM grounding are masked to reduce sensitive-data exposure, while private API keys and credentials are guarded via multi-source resolution and version-control exclusion rules.
 
 ---
 
@@ -9,7 +9,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│             CUSTOMER ENVIRONMENT / LOCAL RAM                │
+│                 APPLICATION RUNTIME IN-MEMORY RAM           │
 │                                                             │
 │  [ Uploaded CSVs ] ──► [ In-Memory SQLite (:memory:) ]      │
 │                                │                            │
@@ -29,7 +29,7 @@
        [ Local PPTX Export   ]                  ▼
                                      ┌─────────────────────────┐
                                      │  GOOGLE GEMINI / VERTEX │
-                                     │  (Zero-Shot SQL Gen)    │
+                                     │  (NL-to-SQL Inference)  │
                                      └─────────────────────────┘
 ```
 
@@ -38,6 +38,7 @@
 ## 🛡️ Core Security Safeguards
 
 ### 1. In-Memory Ephemeral Storage
+- Raw uploaded files are processed in memory and are not persisted by the application.
 - All uploaded datasets are stored **strictly in RAM (`:memory:`)** using SQLite.
 - Datasets are **never written to disk**, temp files, or persistent databases.
 - When the session ends or datasets are cleared, active memory is purged via Python `gc.collect()`.
@@ -54,25 +55,25 @@
 
 ### 4. API Key Protection & Secret Isolation
 - **Multi-Source Resolution**: API keys are retrieved from Streamlit Secrets (`st.secrets`), environment files (`.env` via `python-dotenv`), or system environment variables.
-- **Zero Hardcoding**: No credentials or private tokens are hardcoded into codebase source files.
+- **No Hardcoded Credentials**: No private tokens or secret keys are hardcoded into codebase source files.
 - **Version Control Exclusions**: Strict `.gitignore` rules prevent `.env`, `.streamlit/secrets.toml`, database files (`*.db`), and uploaded datasets from being committed.
 - **Template Safety**: Only sanitized template files (`.env.example`, `.streamlit/secrets.toml.example`) are checked into Git.
 
 ### 5. Telemetry-Free Deployment
-- Streamlit external telemetry and usage tracking are disabled by default (`gatherUsageStats = false`).
+- Streamlit external telemetry and usage tracking are disabled (`gatherUsageStats = false`).
 - Cross-Site Request Forgery (`XSRF`) protection and CORS restrictions are enforced in `.streamlit/config.toml`.
 
 ---
 
-## 🏢 Enterprise Compliance & Deployment Options
+## 🏢 Compliance & Deployment Modes
 
-| Deployment Mode | LLM Provider | Data Residency & Privacy |
+| Deployment Mode | LLM Provider | Data Handling & Privacy |
 | :--- | :--- | :--- |
-| **Standard Cloud** | Google Gemini API | Schema metadata transmitted; raw dataset stays local in RAM. |
-| **Enterprise Cloud** | Google Cloud Vertex AI | SOC-2, ISO 27001, HIPAA compliant. Google does not log or train on customer prompts. |
-| **Air-Gapped / On-Prem** | Local Ollama / vLLM (Llama 3, DeepSeek) | 100% of data, metadata, and LLM inferences remain inside the internal corporate network. |
+| **Standard Cloud / Live Demo** | Google Gemini API | Schema metadata transmitted; raw dataset stays in memory in RAM. Masked sample rows for grounding. |
+| **Enterprise Cloud** | Google Cloud Vertex AI | SOC-2, ISO 27001, HIPAA compliant backend options. |
+| **Air-Gapped / On-Prem** | Local Ollama / vLLM (Llama 3, DeepSeek) | 100% of data, metadata, and LLM inferences remain inside the internal network. |
 
 ---
 
 ## 🐛 Vulnerability Reporting
-If you discover a security vulnerability within this project, please open a private security advisory or contact the maintainers. We are committed to resolving critical security issues promptly.
+If you discover a security vulnerability within this project, please open a private security advisory or contact the maintainers.

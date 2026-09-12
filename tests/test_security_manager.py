@@ -258,6 +258,8 @@ class TestGetGeminiApiKey:
         assert key == ""
 
     def test_returns_empty_when_unset(self, monkeypatch):
+        import dotenv
+        monkeypatch.setattr(dotenv, "load_dotenv", lambda *args, **kwargs: None)
         monkeypatch.delenv("GEMINI_API_KEY", raising=False)
         key = get_gemini_api_key()
         assert key == ""
